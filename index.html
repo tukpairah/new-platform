@@ -1,0 +1,779 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>R2-D2 Lobby</title>
+<link href="https://fonts.googleapis.com/css2?family=Lilita+One&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="common.css">
+<link rel="stylesheet" href="games/dodge.css">
+<link rel="stylesheet" href="games/shell.css">
+<style>
+/* Lobby layout. Colours, icons, music and texts are all in config.js */
+html,body{overflow:hidden;background:#231A36}
+#bg{position:fixed;inset:0;background-size:cover;background-position:center}
+body[data-mode="desktop"] #bg{background-image:linear-gradient(#5B4570,#3A2A52 55%,#231A36)}
+body[data-mode="phone"] #bg{background-image:
+  repeating-linear-gradient(45deg,rgba(255,255,255,.05) 0 2px,transparent 2px 46px),
+  repeating-linear-gradient(-45deg,rgba(255,255,255,.05) 0 2px,transparent 2px 46px),
+  linear-gradient(#2F6397,#4285B6 45%,#2F6397)}
+
+#viewport{position:fixed;left:0;top:0;width:100vw;height:100vh;height:100dvh;overflow:hidden}
+.stage{position:absolute;left:50%;top:50%;transform-origin:center center;display:none}
+/* image slots (pass picture) */
+.slot{position:relative;overflow:hidden;display:flex;align-items:center;justify-content:center}
+.slot img{width:100%;height:100%;object-fit:cover;display:block}
+.slot .ph{font-size:13px;line-height:1.1;text-align:center;color:rgba(0,0,0,.55);padding:6px;border:2px dashed rgba(0,0,0,.35);border-radius:6px;width:calc(100% - 12px);height:calc(100% - 12px);display:flex;align-items:center;justify-content:center}
+
+/* R2 */
+.r2btn{appearance:none;background:transparent;border:0;display:block}
+.r2btn:active{transform:scale(.96)}
+@keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
+@media (prefers-reduced-motion:reduce){.r2btn{animation:none}}
+.r2btn img{display:block;width:100%;height:100%;object-fit:contain}
+.r2wrap{position:relative}
+.mini{position:absolute;z-index:2;filter:drop-shadow(0 4px 0 rgba(0,0,0,.35));pointer-events:none}
+.mini .beep{display:block;padding:13px 16px 24px;background:#fff;color:#1d1e26;text-align:center;line-height:1.15;
+  clip-path:polygon(0 14%,5% 0,95% 0,100% 14%,100% 70%,95% 82%,34% 82%,18% 100%,22% 82%,5% 82%,0 70%)}
+.mini.pop{animation:pop .28s ease-out}
+@keyframes pop{from{transform:scale(.75);opacity:0}to{transform:scale(1);opacity:1}}
+.r2btn.hop svg,.r2btn.hop img{animation:hop .45s ease-out}
+@keyframes hop{0%{transform:none}30%{transform:translateY(-14px) rotate(-5deg)}60%{transform:translateY(0) rotate(3deg)}100%{transform:none}}
+@media (prefers-reduced-motion:reduce){.mini.pop,.r2btn.hop svg,.r2btn.hop img{animation:none}}
+
+/* ================= DESKTOP (Brawl-style lobby) ================= */
+#stageD{width:1280px;height:720px;--st:var(--bk);--side-gap:24px;--side-inset:30px;--side-size:92px}
+.d-grid{position:relative;width:1280px;height:720px;padding:24px 30px 30px;display:grid;grid-template-columns:250px minmax(0,1fr) 250px;grid-template-rows:auto minmax(0,1fr) auto;column-gap:20px}
+.d-panel{background:linear-gradient(var(--sl3),var(--sl) 50%,var(--sl2));border:3px solid var(--bk);border-radius:10px;box-shadow:inset 0 2px 0 rgba(255,255,255,.2),0 4px 0 var(--bk)}
+.d-head{grid-column:1/-1;display:flex;align-items:flex-start;justify-content:space-between}
+.d-prof{display:flex;align-items:center;gap:12px;padding:6px 20px 6px 6px}
+.avatar{width:46px;height:46px;background:#D8F3FF;border:3px solid var(--bk);border-radius:8px;display:flex;align-items:center;justify-content:center; overflow: hidden;}
+.d-hr{display:flex;gap:14px}
+.d-sq{width:48px;height:48px;display:flex;align-items:center;justify-content:center}
+.d-sq .ico{width:26px;height:26px}
+/* the two side columns: same button size, same gap, same horizontal axis, mirrored inset (one set of variables per layout) */
+.side{position:absolute;top:50%;transform:translateY(-50%);display:flex;flex-direction:column;gap:var(--side-gap);z-index:1}
+.side.left{left:var(--side-inset)}.side.right{right:var(--side-inset)}
+.side .btn{width:var(--side-size);height:var(--side-size)}
+.side .btn .ico{width:calc(var(--side-size) * .54);height:calc(var(--side-size) * .54)}
+body.labels .side .btn .ico{width:calc(var(--side-size) * .42);height:calc(var(--side-size) * .42)}
+.badge.dot{min-width:18px;width:18px;height:18px;padding:0;font-size:0;top:-6px;right:-6px}
+.fday{font-size:22px;margin:14px 0 8px}.fday:first-child{margin-top:0}
+.fcard{position:relative;margin-bottom:10px;padding:12px 12px 10px;background:rgba(0,0,0,.25);border-radius:10px}
+.fcard .fbody{max-height:min(34vh,15em);overflow-y:auto;scroll-behavior:smooth;-webkit-overflow-scrolling:touch}
+.fcard .fbody.fade{-webkit-mask-image:linear-gradient(transparent,#000 14px,#000 calc(100% - 14px),transparent);mask-image:linear-gradient(transparent,#000 14px,#000 calc(100% - 14px),transparent)}
+.ffr{margin:0 0 .6em;font-size:21px;line-height:1.4}
+.fcard .mbtn.small{margin-top:6px;min-height:36px;font-size:15px}
+.fclosed{position:relative;margin-bottom:10px}.fclosed .badge{top:-8px;right:-6px}
+.fmore{margin-top:12px;opacity:.8}
+.gphrase{font-size:30px;line-height:1.25;margin:8px 0 14px;text-align:center}
+.gtrans{font-size:17px;line-height:1.3;opacity:.85;text-align:center;margin:0 0 10px}
+.btn{position:relative;width:92px;height:92px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px}
+.btn.dark{background:linear-gradient(#4A4E69,#3A3E55 50%,#2E3246);border:3px solid var(--bk);border-radius:10px;box-shadow:inset 0 2px 0 rgba(255,255,255,.2),0 4px 0 var(--bk)}
+.btn.yellow{background:linear-gradient(var(--y2),var(--y) 55%,#E5B741);border:3px solid var(--bk);border-radius:10px;box-shadow:inset 0 -5px 0 var(--ye),inset 0 2px 0 rgba(255,255,255,.45),0 4px 0 var(--bk)}
+.btn.locked{background:linear-gradient(#3C3F52,#32354A 50%,#292C3C);opacity:.9}
+.btn .ico{width:50px;height:50px}
+body.labels .btn .ico{width:38px;height:38px}
+.btn .lbl{font-size:15px;--sw:3px}
+.tag{position:absolute;top:-10px;right:-8px;padding:3px 7px 4px;background:var(--red);border:3px solid var(--bk);border-radius:6px;font-size:12px}
+.d-center{grid-column:2;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;min-width:0}
+.d-center .r2wrap{width:190px;height:247px}
+.d-center .mini{left:74%;top:-34px;width:210px}
+.d-center .mini .beep{font-size:21px}
+.d-r2{width:190px;height:247px}
+.floor{width:300px;height:44px;margin-top:-24px;border-radius:50%;background:rgba(0,0,0,.3)}
+.d-bottom{grid-column:1/-1;display:flex;align-items:flex-end;justify-content:space-between;gap:20px;padding-top:14px}
+.d-passwrap{display:flex;align-items:flex-end;gap:12px}
+.passbtn{appearance:none;background:none;border:0;display:flex;align-items:flex-end;gap:12px;text-align:left}
+.d-pass-img{width:auto;height:96px;background:none;border:none;border-radius:10px;box-shadow:none}
+.d-pass-info{display:block;width:176px;padding-bottom:4px}
+.d-pass-info .ttl{display:block;font-size:17px;margin-bottom:8px}
+.xpbar{display:block;position:relative;height:24px;background:var(--sl2);border:3px solid var(--bk);border-radius:8px;overflow:hidden}
+.xpbar i{display:block;height:100%;width:0;background:linear-gradient(var(--y2),var(--y))}
+.xpbar span{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:14px}
+.d-event{width:380px}
+.d-event .bar{display:flex;align-items:center;gap:14px;height:64px;padding:0 18px;border-radius:10px}
+.d-event .circ{width:42px;height:42px;border-radius:50%;background:#F9F9F9;border:3px solid var(--bk);display: flex; justify-content: center; align-items: center;}
+.d-event .circ .ico{width:24px;height:24px}
+.d-event .ttl{font-size:24px}.d-event .sub{margin-top:4px;font-size:14px;color:var(--y2)}
+.d-play{width:250px;display:flex;flex-direction:column;align-items:flex-end}
+a.btn{text-decoration:none;color:inherit}
+.d-play .tab{padding:4px 14px 5px;background:var(--sl2);border:3px solid var(--bk);border-bottom:0;border-radius:8px 8px 0 0;font-size:13px}
+.playbtn{width:100%;height:84px;background:var(--y);border:4px solid var(--bk);border-radius:10px;box-shadow:inset 0 -7px 0 var(--ye),inset 0 3px 0 rgba(255,255,255,.45),0 4px 0 var(--bk);color:var(--bk);font-size:44px;line-height:1;display:flex;align-items:center;justify-content:center}
+.playbtn:active,.btn:active{transform:translateY(2px)}
+
+/* ================= PHONE lobby (fluid, thumb zone: top bar / R2 / bottom tab bar). Only used when body[data-mode=phone] ================= */
+#stageP{--st:var(--nv);left:0;top:0;width:100%;height:100%;transform:none!important;overflow:hidden}
+.p-wrap{position:relative;width:100%;height:100%;display:flex;flex-direction:column;padding:env(safe-area-inset-top) env(safe-area-inset-right) 0 env(safe-area-inset-left)}
+.p-top{padding:10px 12px 0;display:flex;flex-direction:column;gap:10px}
+.p-row{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.p-panel{background:linear-gradient(var(--bl),var(--bl2));border:3px solid var(--cream);border-radius:10px;box-shadow:0 0 0 2px var(--nv),0 4px 0 var(--nv)}
+.p-prof{flex:1 1 0;min-width:0;display:flex;align-items:center;gap:8px;padding:4px 12px 4px 4px;min-height:48px}
+.p-prof .avatar{width:38px;height:38px;flex:none;border-color:var(--nv)}
+.p-prof .t{font-size:19px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.p-coin{display:flex;align-items:center;gap:6px;height:48px;min-width:44px;padding:0 12px 0 8px;--st:var(--nv)}
+.p-coin .ico{width:26px;height:26px}.p-coin .t{font-size:19px}
+.p-ib{position:relative;width:48px;height:48px;flex:none;display:flex;align-items:center;justify-content:center}
+.p-ib .ico{width:26px;height:26px}
+.p-count{display:flex;align-items:center;gap:10px;padding:8px 14px;background:rgba(14,44,102,.55);border:3px solid rgba(14,44,102,.9);border-radius:10px}
+.p-count .big{font-size:22px}.p-count .small{margin-top:2px;font-size:14px}.p-count .cup{width:32px;height:32px;flex:none}
+.p-count .p-lvl{margin-left:auto;display:flex;align-items:center;gap:8px;min-width:0}
+.p-count .track{width:min(26vw,110px);height:14px;background:var(--nv);border:3px solid var(--nv);border-radius:8px;overflow:hidden}
+.p-count .track i{display:block;height:100%;width:0;background:linear-gradient(#6FB5FF,var(--bl))}
+.p-mid{position:relative;flex:1 1 0;min-height:0}
+.p-arena{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.p-arena .r2wrap{width:clamp(96px,min(36vw,24dvh),150px);aspect-ratio:130/169;height:auto}
+.p-r2{width:100%;height:100%}
+.p-arena .mini{left:50%;transform:translateX(-50%);top:auto;bottom:calc(100% + 6px);width:min(70vw,240px);max-width:calc(100vw - 24px)}
+.p-arena .mini .beep{font-size:15px;padding:10px 12px 16px}
+.p-arena .floor{width:min(46vw,190px);height:26px;margin-top:-14px;background:rgba(14,44,102,.35)}
+.p-fab{position:absolute;bottom:14px;display:flex;flex-direction:column;gap:14px}
+.p-fab.l{left:14px}.p-fab.r{right:14px}
+.p-fab .btn{position:relative;width:56px;height:56px;min-width:44px;border-radius:50%;padding:0;display:flex;align-items:center;justify-content:center}
+.p-fab .btn .ico{width:30px;height:30px}.p-fab .badge{top:-6px;right:-6px;left:auto}
+.p-nav{position:relative;display:flex;align-items:flex-end;background:linear-gradient(var(--nav1),var(--nav2));border-top:3px solid #2D3748;padding:0 4px env(safe-area-inset-bottom)}
+.p-tab{position:relative;flex:1 1 0;min-width:44px;height:64px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;background:transparent;border:0;color:#fff}
+.p-tab .ico{width:30px;height:30px}
+.p-tab .lbl{display:none;font-size:13px}body.plabels .p-tab .lbl{display:block}
+.p-tab .badge{position:absolute;top:4px;right:calc(50% - 26px);left:auto;min-width:20px;height:20px;font-size:12px;background:#D91E3A;border:2px solid var(--cream)}
+.p-tab.play{flex:1.25 1 0;height:78px;margin-top:-26px;border-radius:50% 50% 14px 14px / 40% 40% 14px 14px;background:var(--go);border:4px solid var(--cream);box-shadow:0 0 0 3px var(--nv),0 5px 0 var(--nv);justify-content:center;align-self:flex-end;margin-bottom:6px}
+.p-tab.play .a{font-size:26px;line-height:1}.p-tab.play .b{display:none}
+.p-quest{position:absolute;left:50%;transform:translateX(-50%);bottom:calc(100% + 34px - 3px);white-space:nowrap;padding:3px 12px 4px;background:var(--sl2);border:3px solid var(--bk);border-radius:8px;font-size:14px;pointer-events:none}
+@media (max-height:620px){.p-arena .floor{display:none}.p-tab{height:56px}.p-tab.play{height:68px}.p-top{gap:6px}.p-count{padding:5px 12px}}
+.d-hr .coinpill{height:48px}
+
+
+/* ================= BIRTHDAY PASS (the path) ================= */
+.pass-root{position:fixed;inset:0;z-index:15;display:flex;flex-direction:column;background:linear-gradient(#3A2088,#2C1572 35%,#1F0B59);--st:#12062F;--cw:196px;--th:210px;--bh:150px}
+.pass-root[hidden]{display:none}
+.pass-root::before{content:'';position:absolute;inset:0;pointer-events:none;background:repeating-linear-gradient(45deg,rgba(255,255,255,.04) 0 2px,transparent 2px 54px),repeating-linear-gradient(-45deg,rgba(255,255,255,.04) 0 2px,transparent 2px 54px)}
+.ps-bar{position:relative;z-index:1;display:flex;align-items:center;gap:12px 16px;flex-wrap:wrap;padding:12px 20px;padding-top:max(12px,env(safe-area-inset-top));background:linear-gradient(#3A2088,#2C1572);border-bottom:4px solid #12062F}
+.ps-btn{display:flex;align-items:center;justify-content:center;gap:8px;height:48px;min-width:48px;padding:0 12px;background:linear-gradient(#4A3AA8,#33227D 50%,#26185E);border:3px solid #12062F;border-radius:10px;box-shadow:inset 0 2px 0 rgba(255,255,255,.2),0 4px 0 #12062F}
+.ps-btn .ico{width:28px;height:28px}
+.ps-gems .t{font-size:22px}
+.ps-title{display:flex;align-items:center;gap:12px;flex:1 1 0;min-width:0}
+.ps-ticket{width:64px;height:46px;flex:none;border:3px solid #12062F;border-radius:8px;background:linear-gradient(#FFE766,#F4A23A)}
+.ps-ticket .ph{padding:0;font-size:9px;width:calc(100% - 8px);height:calc(100% - 8px);border-width:1px}
+.ps-h{font-size:24px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ps-end{margin-top:6px;font-size:15px;color:#FFE766}
+.ps-xp{display:flex;align-items:center;gap:10px}
+.ps-xpl{font-size:20px}
+.ps-xpbar{position:relative;width:210px;height:26px;background:#12062F;border:3px solid #12062F;border-radius:8px;overflow:hidden}
+.ps-xpbar i{display:block;height:100%;background:linear-gradient(#8CC8FF,#3B83DF)}
+.ps-xpbar span{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:15px}
+.ps-lvb{width:40px;height:40px;border-radius:50%;background:#12062F;border:3px solid #4A3AA8;display:flex;align-items:center;justify-content:center;font-size:20px}
+.ps-body{position:relative;z-index:1;flex:1 1 auto;min-height:0;display:flex;gap:14px;padding:8px 14px 16px;align-items:center}
+.ps-feat{flex:none;width:250px;align-self:stretch;margin:8px 0 16px;display:flex;flex-direction:column;align-items:center;gap:10px;padding:14px;text-align:center;border-radius:10px;
+  background:linear-gradient(#4B2FB3,#301C80);border:3px solid #12062F;box-shadow:inset 0 2px 0 rgba(255,255,255,.2),0 6px 0 rgba(0,0,0,.35)}
+.ps-ft{font-size:22px}
+.ps-fimg{flex:1 1 auto;min-height:0;width:100%;display:flex;align-items:center;justify-content:center;border-radius:8px;background:radial-gradient(#8F6CFF,#4B2FB3);overflow:hidden}
+.ps-fimg img{width:100%;height:100%;object-fit:contain}
+.ps-fimg .ico{width:90px;height:90px}
+.ps-fx{font-size:15px;line-height:1.25;color:#fff}
+.ps-get{width:100%;height:56px;border-radius:10px;border:4px solid #12062F;background:linear-gradient(#F0DA50,#F4C444 55%,#E5B741);box-shadow:inset 0 -5px 0 #C6923B,0 4px 0 #12062F;font-size:28px;line-height:1;color:#12062F}
+.ps-get[aria-disabled="true"]{filter:grayscale(.6);opacity:.75}
+.ps-trackwrap{position:relative;flex:1 1 auto;min-width:0;align-self:stretch;display:flex;align-items:center}
+.ps-track{display:flex;width:100%;overflow-x:auto;scrollbar-width:none;scroll-snap-type:x proximity;padding:8px 0 14px;-webkit-overflow-scrolling:touch}
+.ps-track::-webkit-scrollbar{display:none}
+.ps-col{flex:0 0 var(--cw);display:flex;flex-direction:column;align-items:center;scroll-snap-align:center}
+.ps-card{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;border-radius:8px;overflow:hidden;text-align:center;padding:0;color:#fff}
+.ps-top{width:calc(var(--cw) - 40px);height:var(--th);padding:30px 8px 8px;background:linear-gradient(#DCCFFB,#B89DF5);border:3px solid #F1EBFF;box-shadow:0 0 0 3px #2A1A7C,0 6px 0 3px rgba(0,0,0,.35)}
+.ps-top .plus{position:absolute;top:7px;left:0;right:0;font-size:15px;color:#4B2FB3;text-shadow:none;letter-spacing:.5px}
+.ps-top .art{flex:1;display:flex;align-items:center;justify-content:center;width:100%;min-height:0}
+.ps-top .art img{max-width:100%;max-height:100%;object-fit:contain}
+.ps-top .art .ico{width:64px;height:64px;filter:drop-shadow(0 3px 0 #5B3FC4)}
+.ps-top .nm{font-size:18px;line-height:1.05;padding-bottom:4px}
+.ps-lock{position:absolute;top:6px;left:6px;width:30px;height:30px;border-radius:50%;background:#12062F;display:flex;align-items:center;justify-content:center}
+.ps-lock .ico{width:18px;height:18px}
+.ps-col.locked .ps-top,.ps-col.locked .ps-bot{filter:saturate(.55) brightness(.82)}
+.ps-mid{position:relative;width:100%;height:64px;display:flex;align-items:center;justify-content:center}
+.ps-mid::before{content:'';position:absolute;left:0;right:0;top:50%;height:10px;margin-top:-5px;background:#12062F}
+.ps-mid.on::before{background:linear-gradient(#FFB347,#F28C1C)}
+.ps-node{position:relative;width:46px;height:46px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:22px;background:#12062F;border:3px solid #4A3AA8;color:#fff;line-height:1}
+.ps-node.on{background:linear-gradient(#FFE766,#F4C444);border-color:#12062F}
+.ps-bot{width:calc(var(--cw) - 50px);height:var(--bh);padding:10px 6px 8px;justify-content:space-between;background:linear-gradient(#4A86F2,#2A52C8);border:3px solid #12062F;box-shadow:inset 0 2px 0 rgba(255,255,255,.3),0 5px 0 rgba(0,0,0,.35)}
+.ps-bot .gem{flex:1;display:flex;align-items:center;justify-content:center;min-height:0}
+.ps-bot .gem .ico{width:54px;height:54px}
+.ps-bot .gem img{max-height:70px;max-width:100%}
+.ps-bot .amt{font-size:26px}
+.ps-bot .stat{font-size:14px;line-height:1;padding:4px 9px 5px;border-radius:6px;background:rgba(0,0,0,.38);color:#fff}
+.ps-bot.ready{box-shadow:0 0 0 3px #FFD84A,0 0 22px 4px rgba(255,216,74,.65)}
+.ps-bot.ready .stat{background:linear-gradient(#FFE766,#F4C444);color:#12062F}
+.ps-bot.done{filter:saturate(.7) brightness(.85)}
+.ps-bot.done .stat{background:#2E8A12}
+.ps-arr{position:absolute;top:50%;margin-top:-26px;z-index:2;width:44px;height:52px;display:flex;align-items:center;justify-content:center;background:rgba(18,6,47,.78);border:3px solid #4A3AA8;border-radius:10px}
+.ps-arr.l{left:-6px}.ps-arr.r{right:-6px}
+.ps-arr .ico{width:26px;height:26px}
+.ps-arr.r .ico{transform:rotate(180deg)}
+.ps-col{position:relative}
+.ps-top{position:relative;z-index:1}
+/* a step she can open now: it breathes, glows and shows a floating "!" (transform / opacity only) */
+.ps-col.avail .ps-top{animation:psBreathe 1.6s ease-in-out infinite;will-change:transform}
+.ps-glow{position:absolute;left:50%;top:-6px;width:calc(var(--cw) - 14px);height:calc(var(--th) + 12px);margin-left:calc((var(--cw) - 14px) / -2);border-radius:20px;z-index:0;pointer-events:none;
+  background:radial-gradient(closest-side,rgba(255,226,122,.85),rgba(255,226,122,0));animation:psGlow 1.6s ease-in-out infinite}
+.ps-bang{position:absolute;z-index:2;left:50%;top:-10px;margin-left:calc((var(--cw) - 40px) / 2 - 22px);font-size:26px;color:#FFE27A;pointer-events:none;animation:psBang 1.6s ease-in-out infinite}
+@keyframes psBreathe{0%,100%{transform:scale(1)}50%{transform:scale(1.06)}}
+@keyframes psGlow{0%,100%{opacity:.35;transform:scale(.96)}50%{opacity:1;transform:scale(1.08)}}
+@keyframes psBang{0%,100%{transform:translateY(0);opacity:.85}50%{transform:translateY(-6px);opacity:1}}
+@keyframes psGlowR{0%,100%{opacity:.35}50%{opacity:.9}}
+/* opening: shake, flash, a burst of pieces, the icon pops */
+.ps-top.shake{animation:psShake .4s linear}
+@keyframes psShake{0%,100%{transform:translateX(0)}20%{transform:translateX(-4px) rotate(-1.5deg)}40%{transform:translateX(4px) rotate(1.5deg)}60%{transform:translateX(-3px)}80%{transform:translateX(3px)}}
+.ps-top .art.pop{animation:psPop .38s ease-out}
+@keyframes psPop{0%{transform:scale(.55)}65%{transform:scale(1.15)}100%{transform:scale(1)}}
+@media (prefers-reduced-motion:reduce){
+  .ps-col.avail .ps-top{animation:none}.ps-glow{animation:psGlowR 1.6s ease-in-out infinite}.ps-bang{animation:none}
+  .ps-top.shake,.ps-top .art.pop,.ps-piece{animation:none}.ps-fxlayer{display:none}}
+/* the letter */
+.ps-pic{display:block;max-width:100%;max-height:240px;margin:0 auto 12px;border-radius:10px}
+@media (max-width:820px){
+  .ps-feat,.ps-arr{display:none}
+  .pass-root{--cw:176px;--th:200px;--bh:140px}
+  .ps-xp{width:100%;order:3}.ps-xpbar{flex:1 1 auto;width:auto}.ps-ticket{width:52px;height:38px}.ps-h{font-size:20px}.ps-btn{height:44px}
+  .ps-bar{padding:10px 14px}
+}
+@media (max-height:520px){
+  .pass-root{--cw:150px;--th:130px;--bh:100px}
+  .ps-top .art .ico{width:40px;height:40px}.ps-mid{height:46px}.ps-node{width:38px;height:38px;font-size:18px}
+  .ps-bar{padding:6px 14px;gap:8px 12px}.ps-btn{height:40px}.ps-xpbar{width:150px}
+  .ps-bot .amt{font-size:20px}.ps-bot .gem .ico{width:34px;height:34px}.ps-feat{display:none}
+}
+</style>
+<link rel="stylesheet" href="mobile.css">
+</head>
+<body data-mode="desktop">
+<div id="bg"></div>
+<div id="viewport">
+
+<!-- ======================= DESKTOP ======================= -->
+<div id="stageD" class="stage">
+  <div class="d-grid">
+    <div class="d-head">
+      <div class="d-panel d-prof">
+        <div class="avatar" data-dome="28"></div>
+        <div class="t" style="font-size:22px" data-her></div>
+      </div>
+      <div class="d-hr">
+        <button type="button" class="d-panel coinpill" data-action="bazaar" aria-label="Open the Bazaar"><span class="ico" data-icon="gem"></span><span class="t" data-coins>0</span></button>
+        <button type="button" class="d-panel d-sq" data-action="sound" aria-label="Sound on or off"><span class="ico" data-icon="sound"></span></button>
+        <button type="button" class="d-panel d-sq" data-action="menu" aria-label="Menu"><span class="ico" data-icon="menu"></span></button>
+      </div>
+    </div>
+
+    <div class="side left">
+      <button type="button" class="btn yellow" data-action="bazaar" aria-label="Bazaar">
+        <!-- ICON SLOT: CONFIG.icons.bazaar -->
+        <span class="ico" data-icon="bazaar"></span><span class="lbl t">Bazaar</span>
+      </button>
+      <button type="button" class="btn dark" data-action="gift" aria-label="Daily Gift">
+        <!-- ICON SLOT: CONFIG.icons.gift -->
+        <span class="ico" data-icon="gift"></span><span class="lbl t">Daily Gift</span><span class="badge red dot" data-badge="gift">1</span>
+      </button>
+    </div>
+
+    <div class="d-center">
+      <div class="r2wrap">
+        <div class="mini" aria-live="polite"><span class="beep"></span></div>
+        <button type="button" class="r2btn d-r2" data-action="r2" aria-label="Tap R2-D2" data-r2></button>
+      </div>
+      <div class="floor"></div>
+    </div>
+
+    <div class="side right">
+      <button type="button" class="btn dark" data-action="facts" aria-label="Facts about him">
+        <!-- ICON SLOT: CONFIG.icons.facts -->
+        <span class="ico" data-icon="facts"></span><span class="lbl t">Facts</span><span class="badge red dot" data-badge="facts">1</span>
+      </button>
+      <a class="btn yellow" data-action="platform" role="button" tabindex="0" aria-label="Platform">
+        <!-- ICON SLOT: CONFIG.icons.platform (link: CONFIG.links.platform) -->
+        <span class="ico" data-icon="platform"></span><span class="lbl t" data-platform-label>Platform</span>
+      </a>
+    </div>
+
+    <div class="d-bottom">
+      <div class="d-passwrap">
+        <button type="button" class="passbtn" data-action="pass" aria-label="Open Birthday Pass progress">
+          <!-- IMAGE SLOT: CONFIG.passImage (click opens the progress window) -->
+          <span class="slot d-pass-img" data-slot="pass"></span>
+          
+        </button>
+        <button type="button" class="btn dark" style="width:84px;height:84px" data-action="quests" aria-label="Quests">
+          <!-- ICON SLOT: CONFIG.icons.quests -->
+          <span class="ico" data-icon="quests"></span><span class="lbl t">Quests</span><span class="badge red" data-badge="quests">3</span>
+        </button>
+      </div>
+      <div class="d-event">
+        <div class="d-panel bar">
+          <div class="circ"><span class="ico" data-icon="gift" data-dark></span></div>
+          <div><div class="t ttl" data-cd-title>BIRTHDAY IN</div><div class="t sub">So close, but so far</div></div>
+        </div>
+      </div>
+      <div class="d-play">
+        <div class="tab t">New quest in <span data-nextquest></span></div>
+        <button type="button" class="playbtn" data-action="play" aria-label="Play, game modes">PLAY</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ======================= PHONE ======================= -->
+<div id="stageP" class="stage">
+  <div class="p-wrap">
+    <div class="p-top">
+      <div class="p-row">
+        <div class="p-panel p-prof"><div class="avatar" data-dome="26"></div><div class="t" data-her></div></div>
+        <button type="button" class="p-panel p-coin" data-action="bazaar" aria-label="Open the Bazaar"><span class="ico" data-icon="gem"></span><span class="t" data-coins>0</span></button>
+        <button type="button" class="p-panel p-ib" data-action="sound" aria-label="Sound on or off"><span class="ico" data-icon="sound"></span></button>
+        <button type="button" class="p-panel p-ib" data-action="menu" aria-label="Menu"><span class="ico" data-icon="menu"></span></button>
+      </div>
+      <div class="p-count">
+        <span class="ico cup" data-icon="cup"></span>
+        <div><div class="t big" data-cd-big>7 DAYS</div><div class="t small" data-cd-small>until your birthday</div></div>
+        <div class="p-lvl"><div class="track"><i data-passfill></i></div><div class="t" data-level>1</div></div>
+      </div>
+    </div>
+
+    <div class="p-mid">
+      <div class="p-arena">
+        <div class="r2wrap">
+          <div class="mini" aria-live="polite"><span class="beep"></span></div>
+          <button type="button" class="r2btn p-r2" data-action="r2" aria-label="Tap R2-D2" data-r2></button>
+        </div>
+        <div class="floor"></div>
+      </div>
+      <div class="p-fab l"><button type="button" class="btn dark" data-action="facts" aria-label="Facts about him"><span class="ico" data-icon="facts"></span><span class="badge red dot" data-badge="facts">1</span></button></div>
+      <div class="p-fab r"><a class="btn yellow" data-action="platform" role="button" tabindex="0" aria-label="Platform"><span class="ico" data-icon="platform"></span></a></div>
+    </div>
+
+    <div class="p-nav">
+      <button type="button" class="p-tab" data-action="bazaar" aria-label="Bazaar"><span class="ico" data-icon="bazaar"></span><span class="lbl t">Bazaar</span></button>
+      <button type="button" class="p-tab" data-action="quests" aria-label="Quests"><span class="ico" data-icon="quests"></span><span class="lbl t">Quests</span><span class="badge" data-badge="quests">3</span></button>
+      <button type="button" class="p-tab play" data-action="play" aria-label="Play, game modes"><span class="t p-quest">New quest in <span data-nextquest></span></span><span class="t a">PLAY</span></button>
+      <button type="button" class="p-tab" data-action="pass" aria-label="Birthday Pass"><span class="ico" data-icon="passClosed"></span><span class="lbl t">Pass</span><span class="badge dot" data-badge="pass">1</span></button>
+      <button type="button" class="p-tab" data-action="gift" aria-label="Daily Gift"><span class="ico" data-icon="gift"></span><span class="lbl t">Gift</span><span class="badge dot" data-badge="gift">1</span></button>
+    </div>
+  </div>
+</div>
+
+</div>
+<div id="passRoot" class="pass-root" hidden role="dialog" aria-modal="true" aria-label="Birthday Pass"></div>
+<div id="modalRoot" class="modal-root" hidden></div>
+
+<div id="splash" class="welcome" role="dialog" aria-modal="true" aria-label="Welcome" hidden>
+  <div class="welcome-card">
+    <div class="t welcome-h" data-splash-title></div>
+    <button type="button" class="welcome-go" id="splashGo"></button>
+  </div>
+</div>
+</div>
+
+<script src="config.js"></script>
+<script src="lib/registry.js"></script>
+<script src="content/settings.js"></script>
+<script src="content/economy.js"></script>
+<script src="content/quiz.js"></script>
+<script src="content/shop.js"></script>
+<script src="content/phrases.js"></script>
+<script src="content/games.js"></script>
+<script src="lib/core.js"></script>
+<script src="lib/brain.js"></script>
+<script src="lib/voice.js"></script>
+<script src="lib/sfx.js"></script>
+<script src="common.js"></script>
+<script src="lib/r2.js"></script>
+<script src="lib/fx.js"></script>
+<script src="games/shell.js"></script>
+<script>
+(function () {
+let rewards = null;                       // the reward API (received once, never global)
+R2.attach(api => {
+  rewards = api;
+  Shell.init({ rewards: api, dev: R2.dev, gain: (g, x) => gain(g, x), onMusic: (open, own) => {
+    ['viewport', 'passRoot', 'modalRoot'].forEach(id => { const el = document.getElementById(id); if (el) el.inert = !!open; });       // the lobby under a game cannot be clicked, focused or reached with Enter / Space
+    if (open && document.activeElement && document.activeElement.blur) document.activeElement.blur();
+    dodgeOpen = open && own; syncMusic(); },     // the lobby music pauses only if the mode has its own
+    onClose: () => { updateUI(); MODALS.play(); } });
+});
+/* ============================================================
+   Lobby code. Everything you edit is in config.js
+   ============================================================ */
+let started = false, bazaarOpen = false, dodgeOpen = false;
+const passRoot = $('#passRoot');
+const passClaimed = () => R2.passClaimed();
+let lastCounted = -1e9, r2 = null;
+
+/* ---------- drawn R2 (3D look) and avatar ---------- */
+const r2Markup = uid => R2Char.markup(uid);       // the drawing is in lib/r2.js (it moves in parts)
+function domeMarkup(size) {
+  return `<svg width="${size}" height="${size}" viewBox="0 0 60 60" aria-hidden="true"><path d="M8 42 A22 22 0 0 1 52 42 Z" fill="#E8EDF5" stroke="#1B2B5A" stroke-width="4" stroke-linejoin="round"/><path d="M30 20 A22 22 0 0 0 8 42 L30 42 Z" fill="#2F6FD0" stroke="#1B2B5A" stroke-width="4" stroke-linejoin="round"/><circle cx="30" cy="32" r="5" fill="#12224F"/><circle cx="30" cy="32" r="2.5" fill="#E63946"/></svg>`;
+}
+
+
+/* ---------- Birthday Pass: the path ---------- */
+const P = () => Object.assign({}, CONFIG.pass, { tiers: R2.passTiers() });
+const passSeen = () => store.get('passSeen', []);
+function tierReached(i) { const t = P().tiers[i - 1]; return !!t && getXp() >= t.xp && passDay() >= i; }
+function passLevel() { let n = 0; for (let i = 1; i <= P().tiers.length; i++) { if (tierReached(i)) n = i; else break; } return n; }
+function needText(i) {
+  const t = P().tiers[i - 1];
+  return passDay() < i ? `Unlocks ${dayLabel(i - 1)}` : `${Math.max(0, t.xp - getXp())} more XP needed. Complete quests!`;
+}
+function fillSlots(root) {
+  $$('[data-slot="pass"]', root).forEach(el => {
+    el.innerHTML = CONFIG.passImage ? `<img src="${esc(CONFIG.passImage)}" alt="" draggable="false">` : '<span class="ph">YOUR IMAGE</span>';
+  });
+}
+function renderPass() {
+  const tiers = P().tiers, total = tiers.length, lvl = passLevel(), claimed = passClaimed(), xp = getXp(), day = passDay();
+  const prev = lvl ? tiers[lvl - 1].xp : 0, next = tiers[lvl];
+  const pct = next ? Math.max(0, Math.min(100, (xp - prev) / (next.xp - prev) * 100)) : 100;
+  const old = $('.ps-track', passRoot), keep = old ? old.scrollLeft : null;
+  const cols = tiers.map((t, k) => {
+    const i = k + 1, reached = tierReached(i), isClaimed = claimed.includes(i);
+    const avail = reached && !isClaimed, topArt = stepIcon(i, isClaimed);
+    const gemArt = t.rewardImage ? `<img src="${esc(t.rewardImage)}" alt="">` : `<span class="ico">${iconHTML('gem')}</span>`;
+    const stat = isClaimed ? '&#10003; CLAIMED' : (reached ? 'CLAIM' : esc(day < i ? 'Unlocks ' + dayLabel(i - 1) : (t.xp - xp) + ' XP to go'));
+    const bstate = isClaimed ? 'done' : (reached ? 'ready' : '');
+    return `<div class="ps-col ${reached ? 'reached' : 'locked'}${avail ? ' avail' : ''}" data-tier="${i}">
+      ${avail ? '<span class="ps-glow" aria-hidden="true"></span>' : ''}
+      <button type="button" class="ps-card ps-top" data-psurprise="${i}" aria-label="${reached ? esc(t.top) : 'Locked surprise ' + i}">
+        <span class="plus t">SURPRISE</span>${reached ? '' : `<span class="ps-lock"><span class="ico">${iconHTML('soon')}</span></span>`}
+        <span class="art">${topArt}</span><span class="nm t">${esc(reached ? t.top : '???')}</span></button>
+      ${avail ? '<span class="ps-bang t" aria-hidden="true">!</span>' : ''}
+      <div class="ps-mid ${lvl >= i ? 'on' : ''}"><span class="ps-node t ${reached ? 'on' : ''}">${i}</span></div>
+      <button type="button" class="ps-card ps-bot ${bstate}" data-ptier="${i}" aria-label="Reward ${i}: ${t.reward} ${esc(CONFIG.currency.name)}">
+        <span class="gem">${gemArt}</span><span class="amt t">${t.reward}</span><span class="stat">${stat}</span></button>
+    </div>`;
+  }).join('');
+  const f = P().featured || {};
+  const fArt = f.image ? `<img src="${esc(f.image)}" alt="">` : `<span class="ico">${iconHTML('gift')}</span>`;
+  passRoot.innerHTML = `
+    <div class="ps-bar">
+      <button type="button" class="ps-btn" data-pclose aria-label="Close the Birthday Pass"><span class="ico" data-icon="back"></span></button>
+      <div class="ps-title"><span class="slot ps-ticket" data-slot="pass"></span>
+        <div><div class="t ps-h">${esc(P().title)}</div><div class="t ps-end">Ends in <span data-pass-end></span></div></div></div>
+      <div class="ps-xp"><span class="t ps-xpl">XP</span><div class="ps-xpbar"><i style="width:${pct}%"></i><span class="t">${next ? xp + ' / ' + next.xp : 'MAX'}</span></div><span class="t ps-lvb">${Math.min(lvl + 1, total)}</span></div>
+      <div class="ps-btn ps-gems" aria-label="Your gems"><span class="ico" data-icon="gem"></span><span class="t" data-coins>0</span></div>
+    </div>
+    <div class="ps-body">
+      <aside class="ps-feat"><div class="t ps-ft">${esc(f.title || '')}</div><div class="ps-fimg">${fArt}</div><div class="ps-fx">${esc(f.text || '')}</div>
+        <button type="button" class="ps-get" data-psurprise="${total}" aria-disabled="${tierReached(total) ? 'false' : 'true'}">GET</button></aside>
+      <div class="ps-trackwrap">
+        <button type="button" class="ps-arr l" data-parrow="-1" aria-label="Scroll left"><span class="ico" data-icon="back"></span></button>
+        <div class="ps-track">${cols}</div>
+        <button type="button" class="ps-arr r" data-parrow="1" aria-label="Scroll right"><span class="ico" data-icon="back"></span></button>
+      </div>
+    </div>`;
+  fillSlots(passRoot); fillIcons(passRoot); fixStepIcons(passRoot); refreshCoins(); tick();
+  const tr = $('.ps-track', passRoot);
+  tr.addEventListener('wheel', e => { if (Math.abs(e.deltaY) > Math.abs(e.deltaX)) { tr.scrollLeft += e.deltaY; e.preventDefault(); } }, { passive: false });
+  if (keep !== null) tr.scrollLeft = keep;
+  else { const c = $(`[data-tier="${Math.max(1, Math.min(total, lvl + (lvl < total ? 1 : 0)))}"]`, tr); if (c) tr.scrollLeft = c.offsetLeft - tr.clientWidth / 2 + c.offsetWidth / 2; }
+}
+let passFocus = null;
+function openPass() { R2.bus.emit('pass:open'); passFocus = document.activeElement; passRoot.hidden = false; renderPass(); const b = $('[data-pclose]', passRoot); if (b) b.focus(); }
+function closePass() { passRoot.hidden = true; passRoot.innerHTML = ''; if (passFocus && passFocus.focus) passFocus.focus(); }
+
+/* ---------- dates and progress ---------- */
+const startMs = () => +new Date(CONFIG.startDate);
+const passDay = () => R2.day();      // the trusted day (server time), see common.js
+function parts(ms) {
+  const s = Math.max(0, Math.floor(ms / 1000));
+  return { d: Math.floor(s / 86400), h: Math.floor(s % 86400 / 3600), m: Math.floor(s % 3600 / 60), s: s % 60 };
+}
+function setBadge(name, n) { $$(`[data-badge="${name}"]`).forEach(el => { el.textContent = n; el.hidden = !n; }); }
+function updateUI() {
+  const day = passDay(), lvl = passLevel(), total = P().tiers.length;
+  $$('[data-day]').forEach(el => el.textContent = day);
+  $$('[data-level]').forEach(el => el.textContent = lvl);
+  $$('[data-total]').forEach(el => el.textContent = total);
+  $$('[data-her]').forEach(el => el.textContent = CONFIG.herName);
+  $$('[data-passfill]').forEach(el => el.style.width = (lvl / total * 100) + '%');
+  setBadge('gift', R2.giftPending() ? 1 : 0);
+  setBadge('facts', R2.unreadFacts() ? 1 : 0);
+  $$('.xpbar .t').forEach(el => el.textContent = lvl + ' / ' + total);
+  setBadge('quests', qToDo());
+  refreshCoins();
+  if (!passRoot.hidden) renderPass();
+}
+function tick() {
+  const left = +new Date(CONFIG.birthday) - R2.now(), done = left <= 0, p = parts(left);
+  $$('[data-cd-title]').forEach(el => el.textContent = done ? 'HAPPY BIRTHDAY!' : `BIRTHDAY IN ${p.d}D ${p.h}H ${pad(p.m)}M`);
+  $$('[data-cd-big]').forEach(el => el.textContent = done ? 'TODAY!' : (p.d >= 1 ? `${p.d} ${p.d === 1 ? 'DAY' : 'DAYS'}` : `${p.h}H ${pad(p.m)}M`));
+  $$('[data-cd-small]').forEach(el => el.textContent = done ? 'happy birthday' : `${p.h}h ${pad(p.m)}m ${pad(p.s)}s until your birthday`);
+  $$('[data-pass-end]').forEach(el => el.textContent = done ? 'now' : `${p.d}d ${p.h}h ${pad(p.m)}m`);
+  const q = parts(R2.timeUntil(Math.max(1, R2.day()) + 1));
+  $$('[data-nextquest]').forEach(el => el.textContent = `${q.h}h ${pad(q.m)}m`);
+}
+
+/* ---------- R2 ---------- */
+function showPhrase() {}                       // R2 now speaks through lib/r2.js (content/phrases.js)
+function tapR2() {
+  const tt = performance.now(); if (tt - lastCounted >= 250) { lastCounted = tt; qAdd('taps'); }     // taps faster than 250 ms do not count for the quest
+  r2.tap(); updateUI();
+  if (!started) { started = true; syncMusic(); }
+}
+
+/* ---------- music: lobby track plays only while the lobby is visible and the Bazaar is closed ---------- */
+const music = makeMusic(CONFIG.music, 'lastTrack', CONFIG.musicVolume, CONFIG.musicRotate);
+function syncMusic() {
+  const should = started && !document.hidden && !bazaarOpen && !dodgeOpen && !isMuted();
+  if (should) music.play(); else music.pause();
+}
+function paintSound() {
+  $$('[data-action="sound"] .ico').forEach(el => { el.innerHTML = isMuted() && !CONFIG.icons.sound ? DEFAULT_ICONS.mute : iconHTML('sound'); });
+  $$('[data-action="sound"]').forEach(el => el.style.opacity = isMuted() ? .7 : 1);
+}
+function toggleSound() { store.set('muted', !isMuted()); paintSound(); syncMusic(); }
+function hideSplash() { $('#splash').hidden = true; started = true; Sfx.unlock(); syncMusic(); r2.greet(); }     // the ENTER tap plays the click sound by itself (see common.js)
+
+/* ---------- windows ---------- */
+const reward = n => `<span class="cin">+${n} <span class="ico">${iconHTML('gem')}</span></span>`;
+const MODALS = {
+  pass() { openPass(); },
+  quests() {
+    const rows = R2.quests().map(q => {
+      const s = qState(q), done = s.v >= q.goal;
+      let act;
+      if (s.claimed) act = '<small>Claimed</small>';
+      else if (done) act = `<button type="button" class="mbtn small" data-qclaim="${esc(q.id)}">Claim ${reward(q.reward)}</button>`;
+      else if (q.type === 'manual') act = `<button type="button" class="mbtn small grey" data-qmanual="${esc(q.id)}">I did it</button>`;
+      else act = `<small>${reward(q.reward)} &middot; ${q.xp || 0} XP</small>`;
+      return `<div class="mrow"><div class="num">${s.claimed ? '&#10003;' : ''}</div><div class="tx"><b>${esc(q.text)}</b><small>${s.v} / ${q.goal} &middot; ${q.daily ? 'daily' : 'one time'}</small></div><div class="act">${act}</div></div>`;
+    }).join('');
+    openModal('Quests', `${rows ? '' : '<p class="mnote">No quests yet. Check back soon!</p>'}<p class="mnote">Complete quests to earn ${esc(CONFIG.currency.name)} and XP. XP fills the Birthday Pass path; ${esc(CONFIG.currency.name)} are spent in the Bazaar.</p>${rows}`);
+  },
+  facts() {
+    const days = R2.factDays().slice().reverse();                      // newest day first
+    const html = days.map(d => `<div class="fday t">Day ${d.day}</div>${d.facts.map(factCard).join('')}`).join('') || '<p class="mnote">Nothing here yet. Come back soon.</p>';
+    openModal('Facts about him', html + (R2.day() < 7 ? '<p class="mnote fmore">More facts tomorrow</p>' : ''));   // later days are not listed, only this line
+    fadeFacts();
+  },
+  gift() {
+    const G = CONFIG.economy.dailyGift;
+    const rows = R2.giftDays().reverse().map(n => {
+      const done = R2.has('gift:' + n);
+      const act = done ? `<button type="button" class="mbtn small grey" data-gopen="${n}">Open</button>` : `<button type="button" class="mbtn small" data-claim="${n}">Claim</button>`;
+      return `<div class="mrow"><div class="num">${n}</div><div class="tx"><b>Day ${n} gift</b><small>${done ? 'Claimed' : '+' + G.gems + ' ' + esc(CONFIG.currency.name) + ' &middot; +' + G.xp + ' XP &middot; a message'}</small></div><div class="act">${act}</div></div>`;
+    }).join('');
+    openModal('Daily Gift', `${rows || '<p class="mnote">Today\'s gift is not ready yet. Come back soon.</p>'}`);
+  },
+  giftView(n) {
+    const p = R2.giftPhrase(n); if (!p) return;                 // the message exists in the page only after she claimed it
+    const show = store.get('giftTr', true);
+    openModal('Day ' + n + ' gift', `<p class="gphrase">${esc(p.fr)}</p>${p.ru ? `<div id="gtr" ${show ? '' : 'hidden'}><p class="gtrans">${esc(p.ru)}</p></div><button type="button" class="mbtn small grey" data-gtoggle>${show ? 'Hide translation' : 'Show translation'}</button>` : ''}<button type="button" class="mbtn" data-close style="margin-top:12px">Nice!</button>`);
+  },
+  soon() { openModal('Coming soon', '<p class="mnote">Something is being built here. Come back later.</p>'); },
+  play() {
+    const fmtCd = ms => { const t = Math.ceil(ms / 1000), d = Math.floor(t / 86400), h = Math.floor(t % 86400 / 3600), m = Math.floor(t % 3600 / 60), sc = t % 60; return (d ? d + 'd ' : '') + pad(h) + ':' + pad(m) + ':' + pad(sc); };
+    const cards = R2.games.list().map(g => {
+      const n = g.unlockDay || 1, diff = `<span class="gdiff ${g.difficulty}">${g.difficulty[0].toUpperCase() + g.difficulty.slice(1)}</span>`;
+      if (!R2.isUnlocked(n)) return `<div class="mcard locked gm">${Shell.icon(g, true)}${diff}<br>???<small>Opens Day ${n}<br><span data-cd="${n}">${fmtCd(R2.timeUntil(n))}</span></small></div>`;
+      const m = R2.mode(g.id), best = m.best ? 'Best ' + m.best : '';
+      return `<button type="button" class="mcard gbtn gm" data-gmode="${esc(g.id)}">${Shell.icon(g)}${diff}<br>${esc(g.name)}<div class="gst">${Shell.starsHTML(m.stars || 0)}</div><small data-mstat="${esc(g.id)}">${best || '&nbsp;'}</small></button>`;
+    }).join('');
+    openModal('Game modes', `<div class="mgrid">${cards}</div>`); fillIcons(modalRoot());
+    R2.games.list().filter(g => R2.isUnlocked(g.unlockDay || 1)).forEach(g => R2.games.load(g.id).then(r => {        // code is fetched only for days that have come
+      if (!r.ok && r.reason === 'soon') { const c = $(`[data-gmode="${g.id}"]`, modalRoot()); if (c) { c.disabled = true; c.classList.add('locked'); $('[data-mstat]', c).textContent = 'Coming soon'; } }
+    }));
+    const tmr = setInterval(() => { const els = $$('[data-cd]', modalRoot()); if (!els.length) return clearInterval(tmr); els.forEach(el => { el.textContent = fmtCd(R2.timeUntil(+el.dataset.cd)); }); if (R2.isUnlocked(+els[0].dataset.cd)) { clearInterval(tmr); MODALS.play(); } }, 1000);
+  },
+  menu() {
+    const vols = [['master', 'Master'], ['music', 'Music'], ['sfx', 'Effects'], ['voice', 'R2 voice']].map(([k, n]) =>
+      `<div class="mrow"><div class="vol"><b>${n}</b><input type="range" class="mrange" min="0" max="100" value="${Math.round(Sfx.level(k) * 100)}" data-vol="${k}" aria-label="${n} volume"></div></div>`).join('');
+    openModal('Menu', `<button type="button" class="mbtn" data-toggle-sound>${isMuted() ? 'Sound: off' : 'Sound: on'}</button>
+      <div style="margin-top:12px">${vols}</div>
+      <div class="mrow"><div class="vol"><b>R2 motion</b><div class="row-flex">${['calm', 'normal', 'lively'].map(k => `<button type="button" class="mbtn small${store.get('motion', CONFIG.r2Motion.level) === k ? '' : ' grey'}" data-motion="${k}">${k[0].toUpperCase() + k.slice(1)}</button>`).join('')}</div></div></div>
+      <p class="mnote" style="margin-top:14px">Your ${esc(CONFIG.currency.name)} and progress are saved in this browser. To move them to another phone or browser, copy the backup code and paste it there.</p>
+      <textarea id="saveBox" class="mbox" readonly rows="3">${esc(exportSave())}</textarea>
+      <button type="button" class="mbtn small grey" data-copy style="margin-top:6px">Copy my backup code</button>
+      <textarea id="loadBox" class="mbox" rows="2" placeholder="Paste a backup code here" style="margin-top:12px"></textarea>
+      <button type="button" class="mbtn small" data-load style="margin-top:6px">Restore</button>
+      ${R2.dev ? '<button type="button" class="mbtn" data-devgrant style="margin-top:14px">DEV: +1000 Gems, +500 XP</button><button type="button" class="mbtn grey" data-devaudit style="margin-top:10px">DEV: economy audit</button><button type="button" class="mbtn grey" data-reset style="margin-top:14px">DEV: reset this test save</button>' : ''}`);
+  }
+};
+function dayLabel(i) { return new Date(startMs() + i * 864e5).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', timeZone: 'Europe/Paris' }); }
+
+/* ---------- Birthday Pass step icons: closed = sealed envelope, opened = one R2 picture per day (all drawn, replaceable) ---------- */
+const _sv = b => `<svg viewBox="0 0 64 64" aria-hidden="true">${b}</svg>`;
+const _g = '<g stroke="#12062F" stroke-width="3.5" stroke-linejoin="round" stroke-linecap="round">';
+const _hl = (d, c) => `<path d="${d}" fill="none" stroke="${c || '#fff'}" stroke-width="2.5" stroke-linecap="round" opacity=".75"/>`;
+const PASS_CLOSED = _sv(`${_g}<rect x="7" y="15" width="50" height="36" rx="5" fill="#F6E7B4"/><path d="M7 20l25 19 25-19" fill="#F2D06B"/><circle cx="32" cy="38" r="8" fill="#E8403A"/></g><path d="M32 33.5l1.7 3.4 3.8.5-2.8 2.6.7 3.7-3.4-1.8-3.4 1.8.7-3.7-2.8-2.6 3.8-.5z" fill="#FFE27A"/>${_hl('M12 24v20')}`);
+const PASS_OPEN = [
+  /* 1 antenna with signal waves */ _sv(`${_g}<rect x="18" y="46" width="28" height="11" rx="3" fill="#4A86F2"/><path d="M32 46V25" fill="none"/><circle cx="32" cy="20" r="6" fill="#F4C444"/></g><path d="M20 13a13 13 0 0 0 0 14M12 8a20 20 0 0 0 0 24M44 13a13 13 0 0 1 0 14M52 8a20 20 0 0 1 0 24" fill="none" stroke="#6FD0FF" stroke-width="3.5" stroke-linecap="round"/>${_hl('M23 50h9')}`),
+  /* 2 escape pod */ _sv(`${_g}<path d="M32 5c11 8 13 24 10 36H22c-3-12-1-28 10-36z" fill="#E4EAF5"/><path d="M22 34l-9 11 10-2z" fill="#E8403A"/><path d="M42 34l9 11-10-2z" fill="#E8403A"/><circle cx="32" cy="22" r="6" fill="#5B9BFF"/><path d="M26 41l6 15 6-15z" fill="#FF8A1F"/></g>${_hl('M27 12c-3 6-3 12-2 17')}`),
+  /* 3 twin suns */ _sv(`${_g}<circle cx="24" cy="30" r="14" fill="#FFD21F"/><circle cx="46" cy="44" r="9" fill="#FF8A1F"/></g><path d="M24 7v5M24 48v5M3 30h5M40 30h5M9 15l3 3M39 15l-3 3M9 45l3-3" stroke="#12062F" stroke-width="3" stroke-linecap="round"/>${_hl('M17 25a9 9 0 0 1 6-5')}`),
+  /* 4 hologram projector */ _sv(`<path d="M28 46L14 12h36L36 46z" fill="#6FD0FF" opacity=".6"/>${_g}<path d="M12 57h40l-6-12H18z" fill="#4A4E69"/><rect x="26" y="45" width="12" height="4" rx="1" fill="#6FD0FF"/><path d="M32 14l3 6 6.5 1-4.7 4.5 1.1 6.5L32 29l-5.9 3 1.1-6.5L22.5 21l6.5-1z" fill="#FFE27A" stroke-width="2.5"/></g>`),
+  /* 5 blueprint scroll */ _sv(`${_g}<path d="M12 14h40v32H12z" fill="#4A86F2"/><ellipse cx="12" cy="30" rx="5" ry="16" fill="#F6E7B4"/><ellipse cx="52" cy="30" rx="5" ry="16" fill="#F6E7B4"/></g>${_hl('M21 23h22M21 31h14M21 39h19')}<circle cx="44" cy="34" r="5" fill="none" stroke="#FFE27A" stroke-width="2.5"/>`),
+  /* 6 tiny droid */ _sv(`${_g}<rect x="19" y="30" width="26" height="22" rx="4" fill="#E4EAF5"/><path d="M19 30a13 13 0 0 1 26 0z" fill="#fff"/><circle cx="32" cy="23" r="4" fill="#E8403A"/><rect x="23" y="52" width="7" height="5" rx="2" fill="#4A86F2"/><rect x="34" y="52" width="7" height="5" rx="2" fill="#4A86F2"/><path d="M38 10v6" fill="none"/></g><path d="M20 40h24" stroke="#4A86F2" stroke-width="4"/>${_hl('M23 34v8')}`),
+  /* 7 key with a star */ _sv(`${_g}<rect x="30" y="29" width="28" height="8" rx="3" transform="rotate(45 30 29)" fill="#FFD21F"/><path d="M44 46l5-5M50 52l5-5" fill="none"/><path d="M20 5l4.7 9.7 10.6 1.3-7.8 7.3 2 10.5L20 28.5l-9.5 5.3 2-10.5-7.8-7.3 10.6-1.3z" fill="#FFD21F"/></g>${_hl('M16 14l3-4')}`)
+];
+/* custom icon > config.icons > drawn default (a picture that fails to load falls back to the drawn one) */
+function stepIcon(i, opened) {
+  const p = ((R2.dayContent(i) || {}).pass) || {}, c = CONFIG.icons || {};
+  const src = opened ? (p.iconOpened || c.passOpened) : (p.iconClosed || c.passClosed);
+  const drawn = opened ? PASS_OPEN[(i - 1) % PASS_OPEN.length] : PASS_CLOSED;
+  return src ? `<span class="ico"><img src="${esc(src)}" alt="" draggable="false" data-fb="${opened ? 'o' : 'c'}${i}"></span>` : `<span class="ico">${drawn}</span>`;
+}
+function fixStepIcons(root) {
+  $$('img[data-fb]', root).forEach(im => im.addEventListener('error', () => {
+    const k = im.dataset.fb, i = +k.slice(1); im.closest('.ico').innerHTML = k[0] === 'o' ? PASS_OPEN[(i - 1) % PASS_OPEN.length] : PASS_CLOSED;
+  }, { once: true }));
+}
+
+/* ---------- opening a step: claim once, then shake, flash, burst, icon pop, and the letter unfolds ---------- */
+const _busy = {};
+function openStep(i, fromEl) {
+  if (!tierReached(i)) { Sfx.play('denied'); toast(needText(i)); return; }
+  const col = $(`.ps-col[data-tier="${i}"]`, passRoot), top = col && $('.ps-top', col);
+  if (passClaimed().includes(i)) { showSurprise(i, top); return; }          // already open: just read the letter, no effects
+  if (_busy[i]) return; _busy[i] = true;
+  const r = R2.claimPass(i);                                                 // the one and only grant (idempotent in the ledger)
+  if (!r.ok) { _busy[i] = false; updateUI(); return; }
+  R2.bus.emit('pass:claim');
+  playOpen(top, i, () => { gain(r.entry.gems, 0); _busy[i] = false; showSurprise(i, top); });
+}
+function playOpen(top, i, done) {
+  const reduced = !!(window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches);
+  const rc = top ? top.getBoundingClientRect() : { left: innerWidth / 2 - 40, top: innerHeight / 2 - 40, width: 80, height: 80 };
+  const cx = rc.left + rc.width / 2, cy = rc.top + rc.height / 2;
+  if (top && !reduced) top.classList.add('shake');
+  setTimeout(() => {
+    if (top) { top.classList.remove('shake', 'avail'); const art = $('.art', top); if (art) { art.innerHTML = stepIcon(i, true); fixStepIcons(art); if (!reduced) art.classList.add('pop'); } }
+    Sfx.play('modal'); setTimeout(() => Sfx.play('levelUp'), 150);          // pop + chime
+    if (reduced) return;
+    Fx.burst(cx, cy);                                                      // flash + confetti (lib/fx.js)
+  }, reduced ? 0 : 400);
+  setTimeout(done, reduced ? 200 : 950);
+}
+
+/* ---------- the letter ---------- */
+/* ---------- Facts: a closed card per unread fact; opening it marks it read ---------- */
+function factNumber(id) { let n = 0; for (const d of R2.factDays()) for (const f of d.facts) { n++; if (f.id === id) return n; } return 0; }
+function factCard(f) {
+  if (!R2.factIsRead(f.id)) return `<button type="button" class="mcard gbtn fclosed" data-fact="${f.id}"><span class="badge red">NEW</span>Fact ${factNumber(f.id)}<small>Tap to open</small></button>`;
+  return `<div class="fcard" data-fcard="${f.id}"><div class="fbody"><p class="ffr">${esc(f.fr)}</p></div></div>`;      // the facts are shown in French only
+}
+function fadeFacts() { $$('.fbody', modalRoot()).forEach(b => b.classList.toggle('fade', b.scrollHeight > b.clientHeight + 4)); }
+function showSurprise(i, originEl) {
+  const t0 = P().tiers[i - 1] || {}, seen = passSeen();
+  if (!seen.includes(i)) { seen.push(i); store.set('passSeen', seen); }
+  openModal(t0.top || 'Letter', Fx.paper(t0) + '<button type="button" class="mbtn" data-close style="margin-top:12px">Close</button>');      // the letter panel is shared (lib/fx.js)
+  const m = $('.modal', modalRoot()); m.classList.add('letter'); Fx.after(m); Fx.unfold(m, originEl);
+}
+function openBazaar() { const u = R2.link(CONFIG.bazaarPage), w = window.open(u, '_blank'); if (!w) location.href = u; }     // (in dev mode ?dev=..&day=.. goes along, so both pages use the same save)
+function gain(n, xp) { Sfx.play(n > 0 ? 'coin' : 'claim'); if (n > 0) R2.bus.emit('gems:gained', { n }); const parts = []; if (n > 0) parts.push(`+${n} ${CONFIG.currency.name}`); if (xp > 0) parts.push(`+${xp} XP`); if (parts.length) toast(parts.join('  '), true); updateUI(); }
+
+document.addEventListener('click', e => { const m = e.target.closest && e.target.closest('[data-motion]'); if (m) { store.set('motion', m.dataset.motion); R2.bus.emit('motion'); MODALS.menu(); } });
+document.addEventListener('input', e => { const v = e.target.closest && e.target.closest('[data-vol]'); if (v) Sfx.setLevel(v.dataset.vol, v.value / 100); });
+document.addEventListener('change', e => { const v = e.target.closest && e.target.closest('[data-vol]'); if (!v) return; if (v.dataset.vol === 'voice') Sfx.speak('bip bop', 'happy'); else if (v.dataset.vol !== 'music') Sfx.play('coin'); });
+document.addEventListener('click', e => {
+  if (e.target.closest('[data-close]') || e.target === modalRoot()) return closeModal();
+  let el;
+  if (el = e.target.closest('[data-claim]')) {
+    const n = +el.dataset.claim, r = R2.claimGift(n);
+    if (r.ok) { gain(r.entry.gems, r.entry.xp); R2.bus.emit('gift:claim'); try { Shell.winSound(); } catch (e) {} MODALS.giftView(n); } else { updateUI(); MODALS.gift(); }
+    return;
+  }
+  if (el = e.target.closest('[data-gopen]')) { MODALS.giftView(+el.dataset.gopen); return; }
+  if (e.target.closest('[data-gtoggle]')) {
+    const on = !store.get('giftTr', true); store.set('giftTr', on);
+    const box = $('#gtr'); if (box) box.hidden = !on; e.target.closest('[data-gtoggle]').textContent = on ? 'Hide translation' : 'Show translation';
+    return;
+  }
+  if (el = e.target.closest('[data-fact]')) {
+    const id = el.dataset.fact; R2.factRead(id);
+    const f = R2.facts().find(x => x.id === id);
+    if (f) { el.outerHTML = factCard(f); fadeFacts(); }
+    updateUI(); return;
+  }
+  if (el = e.target.closest('[data-qclaim]')) { const r = qClaim(el.dataset.qclaim); gain(r.coins, r.xp); MODALS.quests(); return; }
+  if (el = e.target.closest('[data-qmanual]')) { qManualDone(el.dataset.qmanual); MODALS.quests(); return; }
+  if (el = e.target.closest('[data-gmode]')) { closeModal(); Shell.launch(el.dataset.gmode); return; }
+  if (e.target.closest('[data-pclose]')) { closePass(); return; }
+  if (el = e.target.closest('[data-parrow]')) { const tr = $('.ps-track', passRoot); if (tr) tr.scrollBy({ left: +el.dataset.parrow * 380, behavior: 'smooth' }); return; }
+  if (el = e.target.closest('[data-psurprise],[data-ptier]')) { openStep(+(el.dataset.psurprise || el.dataset.ptier), el); return; }
+  if (e.target.closest('[data-copy]')) {
+    const box = $('#saveBox'); box.select();
+    try { navigator.clipboard.writeText(box.value).then(() => toast('Backup code copied', true)); } catch (err) { document.execCommand('copy'); toast('Backup code copied', true); }
+    return;
+  }
+  if (e.target.closest('[data-load]')) {
+    if (importSave($('#loadBox').value)) { toast('Save restored', true); closeModal(); updateUI(); } else toast('That code does not work.');
+    return;
+  }
+  if (e.target.closest('[data-toggle-sound]')) { toggleSound(); MODALS.menu(); return; }
+  if (e.target.closest('[data-devaudit]')) {                                  // dev only: the economy audit (the same one as the admin Economy tab)
+    if (!R2.dev) return; const a = R2.audit(), row = (k, p) => `<p class="mnote" style="text-align:left"><b>${k}</b>: Day 7 total ${p.rows[6].cumGems} Gems / ${p.rows[6].cumXp} XP &middot; all five on day <b>${p.allDay || 'never'}</b> &middot; left ${p.left7} &middot; pass ${p.passOk ? 'ok' : 'NOT ok'}<br><small>${p.rows.map(r => r.cumGems).join(' / ')}</small></p>`;
+    openModal('Economy audit', `<p class="mnote">Prices ${a.prices.join(' / ')} (total ${a.total})</p>${a.ok ? '<p class="mnote">All targets are met.</p>' : a.warnings.map(w => `<p class="mnote" style="color:#FF9A90">&#9888; ${esc(w)}</p>`).join('')}${Object.keys(a.players).map(k => row(k, a.players[k])).join('')}`); return;
+  }
+  if (e.target.closest('[data-devgrant]')) { if (R2.dev && R2.devGrant().ok) { gain(1000, 500); MODALS.menu(); } return; }
+  if (e.target.closest('[data-reset]')) { if (R2.dev) R2.devReset(); return; }
+  const a = e.target.closest('[data-action]'); if (!a) return;
+  const act = a.dataset.action;
+  if (act === 'platform') {
+    R2.bus.emit('platform:open');                  // R2 notices she is leaving                      // external link (config.links.platform); empty url = "Coming soon"
+    if (!(CONFIG.links.platform.url || '').trim()) { e.preventDefault(); Sfx.play('denied'); toast('Coming soon'); }
+    return;
+  }
+  if (act === 'r2') return tapR2();
+  if (act === 'sound') return toggleSound();
+  if (act === 'bazaar') return openBazaar();
+  if (act === 'lobby') return;
+  if (MODALS[act]) MODALS[act]();
+});
+
+/* ---------- fit the design to any screen ---------- */
+function fit() {
+  const box = $('#viewport'), W = box.clientWidth, H = box.clientHeight;
+  const phone = W / H < 0.9;
+  document.body.dataset.mode = phone ? 'phone' : 'desktop';
+  const [w, h] = phone ? [390, 844] : [1280, 720];
+  $('#stageD').style.display = phone ? 'none' : 'block';
+  $('#stageP').style.display = phone ? 'block' : 'none';
+  const stage = phone ? $('#stageP') : $('#stageD');
+  if (phone) { stage.style.transform = ''; stage.style.width = W + 'px'; stage.style.height = H + 'px'; } else stage.style.transform = `translate(-50%,-50%) scale(${Math.min(W / w, H / h)})`;
+  const bg = $('#bg'); bg.style.backgroundImage = '';
+  applyBackground(bg, phone ? CONFIG.backgroundPhone : CONFIG.backgroundDesktop);
+}
+
+/* ---------- start ---------- */
+document.body.classList.toggle('labels', !!CONFIG.showLabels);
+document.body.classList.toggle('plabels', !(CONFIG.mobile && CONFIG.mobile.showLabels === false));       // labels under the phone tab bar (config.mobile.showLabels)
+$$('[data-r2]').forEach((el, i) => el.innerHTML = r2Markup('r' + i + '_'));
+$$('[data-dome]').forEach(el => {
+  el.innerHTML = (CONFIG.avatarImage && el.classList.contains('avatar'))
+    ? `<img src="${esc(CONFIG.avatarImage)}" alt="" draggable="false" style="width:100%;height:100%;object-fit:cover;display:block">`
+    : domeMarkup(+el.dataset.dome);
+});
+$$('[data-slot="pass"]').forEach(el => {
+  el.innerHTML = CONFIG.passImage ? `<img src="${esc(CONFIG.passImage)}" alt="" draggable="false">` : '<span class="ph">YOUR IMAGE</span>';
+});
+const PL = CONFIG.links.platform;
+if (PL.icon) CONFIG.icons.platform = PL.icon;
+$$('[data-action="platform"]').forEach(a => { const u = (PL.url || '').trim();       // no link yet = no href at all (nothing can open by accident)
+    if (u) { const ext = /^https?:\/\//i.test(u), nt = PL.newTab == null ? ext : !!PL.newTab; a.href = ext ? u : R2.link(u);       // a real <a href>: mobile browsers never block it; ?dev params only for our own pages
+      if (nt) { a.target = '_blank'; a.rel = 'noopener noreferrer'; } else { a.removeAttribute('target'); a.removeAttribute('rel'); } } else a.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); a.click(); } }); a.setAttribute('aria-label', PL.label || 'Platform'); });
+$$('[data-platform-label]').forEach(el => el.textContent = PL.label || 'Platform');
+fillIcons(); paintSound(); updateUI(); tick(); fit(); R2.on(updateUI); showSaveNotice();
+const daysLeft = () => Math.max(0, Math.ceil((+new Date(CONFIG.birthday) - R2.now()) / 864e5));
+if (matchMedia('(max-width:600px)').matches && CONFIG.mobile && CONFIG.mobile.motion && CONFIG.r2Motion) CONFIG.r2Motion.level = CONFIG.mobile.motion;      // phone default: calm (her own choice in the menu still wins)
+r2 = R2Char.boot({ dev: R2.dev, buttons: $$('.r2btn'), phrases: R2.phrases(), name: () => CONFIG.herName, daysLeft, now: () => R2.now(), prefs: R2.pref, bus: R2.bus,
+  birthdayToday: () => { const d = R2.now() - +new Date(CONFIG.birthday); return d >= 0 && d < 864e5; } });
+const SS = CONFIG.startScreen && typeof CONFIG.startScreen === 'object' ? CONFIG.startScreen : { enabled: CONFIG.startScreen !== false };
+if (CONFIG.startScreen && SS.enabled !== false) {            // texts: config.startScreen { title, button, showName }
+  const sp = $('#splash'), go = $('#splashGo'); $('[data-splash-title]', sp).textContent = SS.title || 'WELCOME'; go.textContent = SS.button || 'ENTER';
+  if (SS.showName) sp.querySelector('.welcome-card').insertBefore(Object.assign(document.createElement('div'), { className: 't welcome-name', textContent: CONFIG.herName }), go);
+  sp.hidden = false; go.addEventListener('click', hideSplash); go.focus();
+} else r2.greet();
+$$('[data-action="play"],[data-action="quests"],[data-action="facts"],[data-action="gift"],[data-action="pass"],[data-action="menu"]').forEach(b => { b.dataset.sfx = 'open'; });   // buttons that open a window
+setInterval(tick, 1000);
+addEventListener('resize', fit);
+document.addEventListener('keydown', e => { if (e.key === 'Escape' && !e.modalClosed && modalRoot().hidden && !passRoot.hidden) closePass(); });
+document.addEventListener('visibilitychange', () => { syncMusic(); if (!document.hidden) { updateUI(); try { Sfx.unlock(); } catch (e) {} } });       // iOS Safari suspends the audio context in the background
+addEventListener('storage', updateUI);
+if (bc) bc.onmessage = e => { if (e.data && 'bazaar' in e.data) { bazaarOpen = !!e.data.bazaar; syncMusic(); updateUI(); } };
+})();
+</script>
+</body>
+</html>

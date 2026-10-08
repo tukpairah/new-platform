@@ -1,0 +1,1 @@
+Put click.mp3 here (and optionally back.mp3, denied.mp3, open.mp3); short (under 0.3 s), MP3 or WAV, Latin filename. Then write the paths in config.js under sfx: { click: "audio/sfx/click.mp3", ... }. Empty = the built-in synthesized sound.
