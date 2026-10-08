@@ -1,0 +1,68 @@
+/* Phone layer (shared by the lobby, the Bazaar and the games). Desktop is not touched: everything is inside max-width media queries
+   or body[data-mode="phone"]. Tokens / fonts / buttons stay the ones from common.css. Tweak with config.mobile. */
+
+/* ---- foundation (harmless on desktop: no visual change) ---- */
+html,body{overscroll-behavior:none;-webkit-text-size-adjust:100%;text-size-adjust:100%}
+button,a,[role="button"],.mbtn,.btn,input,select,label,summary{touch-action:manipulation}
+button,.btn,.mbtn,.p-tab,.gs-root,.gs-root canvas,.gs-root img,.gs-root svg{-webkit-tap-highlight-color:transparent}
+button,.btn,.mbtn,.p-tab,.gs-bar{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+.modal-root,.pass-root,.ps-body,.ps-track,.gs-stage,.modal{overscroll-behavior:contain}
+html.sheet-open,html.sheet-open body{overflow:hidden!important}
+input[type=range]{min-height:44px}
+@media (hover:none){.btn:hover,.mbtn:hover{filter:none}}
+
+/* ---- bottom sheets (every modal on a phone) ---- */
+@media (max-width:600px){
+  .modal-root{align-items:flex-end;padding:0;background:rgba(8,6,20,.62)}
+  .modal-root .modal{width:100%;max-width:none;max-height:92dvh;max-height:92svh;border-radius:20px 20px 0 0;border-bottom:0;padding:0 16px 0;font-size:16px;line-height:1.35;display:flex;flex-direction:column;overflow:hidden;animation:sheetUp .26s ease-out;touch-action:pan-y}
+  .modal-root .modal::before{content:'';flex:none;align-self:center;width:44px;height:5px;margin:8px 0 0;border-radius:3px;background:rgba(255,255,255,.4)}
+  .modal-root .modal h2{flex:none;margin:0;padding:10px 60px 10px 0;font-size:26px;line-height:1.1}
+  .modal-root .modal .x{top:8px;right:0;width:48px;height:48px;z-index:3}
+  .modal-root .modal #mbody{flex:1 1 auto;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:4px 2px 12px;overscroll-behavior:contain}
+  .modal-root .modal .sheet-close{flex:none;display:block;width:calc(100% + 32px);margin:0 -16px;min-height:56px;padding:0 0 env(safe-area-inset-bottom);border:0;border-top:3px solid var(--medge);background:linear-gradient(var(--ma1),var(--ma2));color:var(--mtx);font-size:22px}
+  .modal-root .modal.letter,.modal-root .modal.gw{width:100%}
+  .modal-root .fcard .fbody,.modal-root .lp{font-size:16px}
+  .welcome{align-items:flex-end;padding:0}.welcome-card{width:100%;border-radius:20px 20px 0 0;padding:22px 18px calc(20px + env(safe-area-inset-bottom))}
+  .welcome-h{font-size:30px}.welcome-p{font-size:16px}
+}
+@keyframes sheetUp{from{transform:translateY(100%)}to{transform:none}}
+@media (prefers-reduced-motion:reduce){.modal-root .modal{animation:none}}
+
+/* ---- Birthday Pass: one vertical column on a phone ---- */
+@media (max-width:600px){
+  .pass-root{--cw:100%}
+  .ps-bar{padding:8px 12px;padding-top:max(8px,env(safe-area-inset-top));gap:8px}
+  .ps-btn{min-width:44px;height:44px}.ps-h{font-size:20px}.ps-ticket{display:none}
+  .ps-body{flex-direction:column;align-items:stretch;overflow-y:auto;overflow-x:hidden;padding:8px 14px calc(16px + env(safe-area-inset-bottom));gap:12px;-webkit-overflow-scrolling:touch}
+  .ps-trackwrap{flex:none;align-self:auto;display:block}
+  .ps-track{flex-direction:column;overflow:visible;scroll-snap-type:none;gap:6px;padding:4px 0}
+  .ps-col{flex:none;width:100%;scroll-snap-align:none}
+  .ps-top{width:100%;height:auto;min-height:150px}
+  .ps-bot{width:100%;height:auto;min-height:110px}
+  .ps-mid{height:34px;width:100%}.ps-mid::before{left:50%;right:auto;top:0;bottom:0;width:10px;height:auto;margin:0 0 0 -5px}
+  .ps-arr{display:none}
+  .ps-feat{display:flex;order:5;width:100%;flex:none;margin:6px 0 0}
+  .ps-get{height:56px}
+}
+
+/* ---- Bazaar (phone) ---- */
+@media (max-width:600px){
+  body .page{min-height:100dvh}
+  body .shelf{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));overflow:visible;scroll-snap-type:none;gap:12px;padding:14px 12px calc(110px + env(safe-area-inset-bottom))}
+  body .card{flex:none;width:auto;min-width:0}
+  body .bar{padding:8px 10px;padding-top:max(8px,env(safe-area-inset-top));gap:8px}
+  body .title{font-size:22px}.right{gap:6px}.sq{width:44px;height:44px}
+  body .price{width:100%}
+}
+@media (max-width:340px){body .shelf{grid-template-columns:minmax(0,1fr)}}
+
+/* ---- game shell ---- */
+@media (max-width:600px){
+  .gs-bar{gap:6px;padding-bottom:6px}.gs-bar .mbtn.small{padding:0 8px;flex:none;min-width:44px}.gs-title{font-size:18px}.gs-best{display:none}
+  .gs-stage{padding:8px max(10px,env(safe-area-inset-left)) max(10px,env(safe-area-inset-bottom))}
+  .gs-screen{padding:12px}.gs-screen .modal{max-height:calc(100% - 8px);overflow-y:auto}
+  .gs-howto .modal,.gs-howto{max-height:100dvh}
+  .gs-howto .modal{overflow-y:auto;max-height:92dvh}
+  .mgrid{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:10px}
+  .mcard{min-height:112px}
+}
