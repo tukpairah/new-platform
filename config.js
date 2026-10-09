@@ -790,7 +790,7 @@ const CONFIG = {
 			// ---- TEXTS (replace me) ----
 			texts: {
 				intro:
-					"R2 is trying to deliver a message. The Static is jamming it. Dodge until it gets through!",
+					"R2 is trying to deliver a message from your boyfriend. The Static is jamming it. Dodge until it gets through!",
 				controls:
 					"Move: WASD / arrows or drag. Dash: Space or the DASH button. Pause: Esc.",
 				play: "PLAY",
@@ -808,35 +808,35 @@ const CONFIG = {
 				{
 					name: "Phase 1: Crackle",
 					duration: 40,
-					line: "Bzzt... you can't read this, can you? (replace me)",
+					line: "Bzzt... you can't read this, can you?",
 					fragment: "Dear",
 				},
 				{
 					name: "Phase 2: Noise",
 					duration: 40,
-					line: "Kkkk... turn back, little heart. (replace me)",
+					line: "Kkkk... turn back, little heart.",
 					fragment: "Irulan,",
 				},
 				{
 					name: "Phase 3: Static",
 					duration: 40,
-					line: "Sssss... so stubborn. (replace me)",
+					line: "Sssss... so stubborn.",
 					fragment: "I love",
 				},
 				{
 					name: "Phase 4: Silence",
 					duration: 40,
-					line: "...fine. One last try. (replace me)",
+					line: "...fine. One last try.",
 					fragment: "you",
 				},
 			],
 			finale: {
 				duration: 15,
-				line: "The Static fades away... (replace me)",
+				line: "The Static fades away...",
 				fragment: "so much.",
 			},
 			finalMessage:
-				"Dear Irulan, I love you so much. (replace me: this is the full message she reads at the end)",
+				"Dear Irulan, I love you so much.",
 
 			// ---- RULES ----
 			rules: {
@@ -859,13 +859,13 @@ const CONFIG = {
 
 	/* ---------------- 5. BAZAAR ---------------- */
 	bazaar: {
-		title: "Bazaar",
+		title: "Tukpay's Bazaar",
 		backgroundDesktop: "", // e.g. "img/bazaar-bg.jpg"
 		backgroundPhone: "",
 		hint: "",                // a line under the Bazaar title ("" = no line, no gap)
 
 		startScreen: true,
-		welcomeTitle: "Welcome to the Bazaar",
+		welcomeTitle: "Welcome to the Tukpay's Bazaar",
 		welcomeText: "", // "" = no line under the title (no empty gap)
 		welcomeButton: "ENTER",
 		// COMING SOON switch: true = every card says COMING SOON, the names stay hidden and
