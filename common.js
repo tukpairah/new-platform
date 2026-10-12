@@ -1,3 +1,26 @@
+/* ---------- phone gate: MODE "soft" = can continue anyway, "hard" = blocked, "off" = disabled ---------- */
+(function(){
+  var MODE = "soft";
+  if (MODE === "off") return;
+  var ua = navigator.userAgent || "";
+  var phone = (navigator.userAgentData && navigator.userAgentData.mobile) || /iPhone|iPod|Android.+Mobile|Windows Phone/i.test(ua);
+  var ok = false; try { ok = sessionStorage.getItem("r2.phoneOk") === "1"; } catch(e){}
+  if (!phone || ok) return;
+  function show(){
+    var d = document.createElement("div");
+    d.style.cssText = "position:fixed;inset:0;z-index:99999;background:#0C070F;color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px;padding:24px;text-align:center;font:26px/1.3 'Lilita One',sans-serif";
+    d.innerHTML = "<div>Ce cadeau est fait pour un ordinateur.<br>Ouvre-le sur ton PC, mon amour.</div>";
+    if (MODE === "soft"){
+      var b = document.createElement("button");
+      b.textContent = "Continuer quand même";
+      b.style.cssText = "min-height:48px;padding:0 20px;border:3px solid #0C070F;border-radius:10px;background:#F4C444;color:#0C070F;font:inherit;font-size:20px";
+      b.onclick = function(){ try { sessionStorage.setItem("r2.phoneOk","1"); } catch(e){} d.remove(); };
+      d.appendChild(b);
+    }
+    document.body.appendChild(d);
+  }
+  if (document.body) show(); else document.addEventListener("DOMContentLoaded", show);
+})();
 /* ==========================================================================
    Shared code for both pages (storage, coins, quests, shop, music, modals).
    You normally do not need to edit this file; everything you change is in config.js
