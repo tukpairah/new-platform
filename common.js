@@ -15,7 +15,7 @@
     d.setAttribute("role", "alertdialog");
     d.style.cssText = "position:fixed;inset:0;z-index:2147483647;background:#0C070F;color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;padding:28px;text-align:center;font-family:'Lilita One','Trebuchet MS',sans-serif;overflow:auto";
     d.innerHTML = '<div style="font-size:34px;color:#F4C444;letter-spacing:1px">R2-D2</div>' +
-      '<div style="max-width:440px;font-size:22px;line-height:1.35">Ton copain a mis beaucoup plus d\u2019efforts dans la version pour ordinateur, et il veut que tu remarques chaque petit d\u00e9tail et chaque petite attention.<br><br>Alors, s\u2019il te pla\u00eet, ouvre-le depuis un ordinateur, fixe ou portable.</div>';
+      '<div style="max-width:440px;font-size:22px;line-height:1.35">Ton chéri a mis beaucoup plus d\u2019efforts dans la version pour ordinateur, et il veut que tu remarques chaque petit d\u00e9tail et chaque petite attention.<br><br>Alors, s\u2019il te pla\u00eet, ouvre-le depuis un ordinateur, fixe ou portable.</div>';
     if (MODE === "soft"){
       var b = document.createElement("button");
       b.textContent = "Continuer quand m\u00eame";
