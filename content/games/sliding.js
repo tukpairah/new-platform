@@ -1,7 +1,7 @@
 /* Sliding Puzzle. Fill in (or use the admin):
    image     the photo, e.g. "img/games/sliding/photo.jpg" ("" = a drawn pattern with numbers)
    caption   the line shown under the full photo after the last level
-   showNumbers  1 = numbers also on the photo tiles      movesThree / movesTwo / timeThree / timeTwo   star limits for levels 1-3 */
+   showNumbers  1 = numbers also on the photo tiles      movesThree / movesTwo / timeThree / timeTwo   star limits for levels 1-2 */
 /* howTo = the "COMMENT JOUER" window (French): goal, 2-4 steps (max 12 words), phone, desktop, tip. It opens by itself the first time and with the ? button. */
 R2.register("gamecontent", "sliding", {
   "howTo": {

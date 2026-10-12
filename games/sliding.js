@@ -3,7 +3,7 @@
 (function () {
   'use strict';
   const rng = seed => { let a = seed >>> 0; return () => { a = (a + 0x6D2B79F5) >>> 0; let t = a; t = Math.imul(t ^ (t >>> 15), t | 1); t ^= t + Math.imul(t ^ (t >>> 7), t | 61); return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; };
-  const SIZES = [3, 4, 5];
+  const SIZES = [3, 4];
   const solvedBoard = size => { const a = []; for (let i = 1; i < size * size; i++) a.push(i); a.push(0); return a; };         // 1..n-1 then the blank (0)
   const isSolved = t => t.every((v, i) => v === (i === t.length - 1 ? 0 : i + 1));
   function inversions(tiles) { const a = tiles.filter(Boolean); let c = 0; for (let i = 0; i < a.length; i++) for (let j = i + 1; j < a.length; j++) if (a[i] > a[j]) c++; return c; }
@@ -75,7 +75,7 @@
         const old = root.querySelector('.sl'); old && old.remove();
         const w = document.createElement('div'); w.className = 'sl';
         const nums = !hasImg || +cfg.showNumbers;
-        w.innerHTML = `<div class="sl-top t"><span>${esc(cfg.levelLabel || 'Level')} ${level + 1}/3</span><span data-mv>0</span><span data-tm>0:00</span><button type="button" class="mbtn small grey" data-prev>Preview</button></div>
+        w.innerHTML = `<div class="sl-top t"><span>${esc(cfg.levelLabel || 'Level')} ${level + 1}/${SIZES.length}</span><span data-mv>0</span><span data-tm>0:00</span><button type="button" class="mbtn small grey" data-prev>Preview</button></div>
           <div class="sl-board">${tiles.filter(Boolean).sort((a, b) => a - b).map(v => `<div class="sl-tile" data-v="${v}" style="width:${100 / size}%;height:${100 / size}%"><i style="${art(v, size)}">${nums ? v : ''}</i></div>`).join('')}<div class="sl-prev" style="${art(null)}"></div></div>`;
         root.appendChild(w); w.querySelectorAll('.sl-tile').forEach(e => { els[+e.dataset.v] = e; }); tiles.forEach(v => v && place(v)); ctx.stars(3);
         tick = setInterval(() => { if (ticking && !paused) { elapsed += 0.25; const e = root.querySelector('[data-tm]'); e && (e.textContent = fmt(elapsed)); } }, 250);
