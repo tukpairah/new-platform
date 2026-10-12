@@ -13,6 +13,7 @@ const CONFIG = {
 	// SAVE AND SAFETY (change the salt once, before she receives the final version; any text is fine)
 	saveSalt: "r2-8f31c2d7a9", // signs her save and backup codes. Do NOT change it after she started playing.
 	legacyCap: null, // her progress from the first version is kept as it is. A number = the most Gems that old balance may count for.
+	phoneGate: "hard", // "hard" = phones see only the "open it on a computer" message, "soft" = she can continue anyway, "off" = no gate
 	devKey: "test", // "" = developer tools OFF (leave it empty when you upload). To test: set a word here, open index.html?dev=THEWORD&day=3
 	lobbyPage: "index.html",
 	bazaarPage: "bazaar.html", // opens in a NEW tab

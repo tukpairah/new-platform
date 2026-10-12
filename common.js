@@ -1,22 +1,29 @@
-/* ---------- phone gate: MODE "soft" = can continue anyway, "hard" = blocked, "off" = disabled ---------- */
+/* ---------- phone gate (config.js: phoneGate = "hard" blocks phones, "soft" lets her continue, "off" disables it). Dev mode (?dev=KEY) skips it. ---------- */
 (function(){
-  var MODE = "soft";
+  var MODE = (typeof CONFIG !== "undefined" && CONFIG.phoneGate) || "hard";
   if (MODE === "off") return;
+  try { if (typeof CONFIG !== "undefined" && CONFIG.devKey && new URLSearchParams(location.search).get("dev") === CONFIG.devKey) return; } catch(e){}
   var ua = navigator.userAgent || "";
-  var phone = (navigator.userAgentData && navigator.userAgentData.mobile) || /iPhone|iPod|Android.+Mobile|Windows Phone/i.test(ua);
+  var small = false, coarse = false;
+  try { small = Math.min(screen.width, screen.height) < 500; coarse = matchMedia("(pointer:coarse)").matches; } catch(e){}
+  // phone = phone user-agent, OR a small touch screen pretending to be a desktop ("desktop site" mode)
+  var phone = (navigator.userAgentData && navigator.userAgentData.mobile) || /iPhone|iPod|Android.+Mobile|Windows Phone/i.test(ua) || (small && coarse);
   var ok = false; try { ok = sessionStorage.getItem("r2.phoneOk") === "1"; } catch(e){}
   if (!phone || ok) return;
   function show(){
     var d = document.createElement("div");
-    d.style.cssText = "position:fixed;inset:0;z-index:99999;background:#0C070F;color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px;padding:24px;text-align:center;font:26px/1.3 'Lilita One',sans-serif";
-    d.innerHTML = "<div>Ce cadeau est fait pour un ordinateur.<br>Ouvre-le sur ton PC, mon amour.</div>";
+    d.setAttribute("role", "alertdialog");
+    d.style.cssText = "position:fixed;inset:0;z-index:2147483647;background:#0C070F;color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;padding:28px;text-align:center;font-family:'Lilita One','Trebuchet MS',sans-serif;overflow:auto";
+    d.innerHTML = '<div style="font-size:34px;color:#F4C444;letter-spacing:1px">R2-D2</div>' +
+      '<div style="max-width:440px;font-size:22px;line-height:1.35">Ton copain a mis beaucoup plus d\u2019efforts dans la version pour ordinateur, et il veut que tu remarques chaque petit d\u00e9tail et chaque petite attention.<br><br>Alors, s\u2019il te pla\u00eet, ouvre-le depuis un ordinateur, fixe ou portable.</div>';
     if (MODE === "soft"){
       var b = document.createElement("button");
-      b.textContent = "Continuer quand même";
+      b.textContent = "Continuer quand m\u00eame";
       b.style.cssText = "min-height:48px;padding:0 20px;border:3px solid #0C070F;border-radius:10px;background:#F4C444;color:#0C070F;font:inherit;font-size:20px";
-      b.onclick = function(){ try { sessionStorage.setItem("r2.phoneOk","1"); } catch(e){} d.remove(); };
+      b.onclick = function(){ try{ sessionStorage.setItem("r2.phoneOk","1"); }catch(e){} d.remove(); document.documentElement.style.overflow = ""; };
       d.appendChild(b);
     }
+    document.documentElement.style.overflow = "hidden";
     document.body.appendChild(d);
   }
   if (document.body) show(); else document.addEventListener("DOMContentLoaded", show);
