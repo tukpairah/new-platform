@@ -5,34 +5,39 @@ const t = (n, f) => { try { f(); pass++; console.log('  ok   ' + n); } catch (e)
 const defs = {}; const R2mock = { games: { register: d => { defs[d.id] = d; } }, register() {}, bus: { emit() {}, on() {} }, mode: () => ({ plays: 0, clears: 0, best: 0, stars: 0 }) };
 const ids = ['quiz', 'dodge', 'memory', 'mot', 'sliding', 'sweeper', 'nonogram', 'tower', 'echo', 'cipher'];
 
-console.log('cipher');
+console.log('transmission (the id is still "cipher")');
 let C;
-t('loads and its logic is available', () => { new Function('R2', fs.readFileSync('games/cipher.js', 'utf8'))(R2mock); C = defs.cipher.logic; assert.ok(C.makeCipher); });
-t('the substitution is a bijection with no letter standing for itself, in both alphabets, for many seeds', () => {
-  for (let s = 1; s <= 300; s++) { const k = C.makeCipher('ab', s); for (const A of [C.LAT, C.CYR]) { const out = A.split('').map(c => k.maps[A][c]); assert.strictEqual(new Set(out).size, A.length); assert.ok(out.every(o => A.includes(o))); A.split('').forEach(c => assert.notStrictEqual(k.maps[A][c], c, 'fixed point ' + c)); } }
+t('loads and its logic is available', () => { new Function('R2', fs.readFileSync('games/cipher.js', 'utf8'))(R2mock); C = defs.cipher.logic; assert.ok(C.shuffleWords && C.correctPrefix); });
+t('the shuffle is a permutation, repeatable for a seed, and never the right order (many seeds, many sentences)', () => {
+  const lines = C.parseLines(defs.cipher.defaults.lines); assert.ok(lines.length >= 4);
+  for (const l of lines) { const ws = C.wordsOf(l); for (let s = 1; s <= 200; s++) { const o = C.shuffleWords(ws, s); assert.deepStrictEqual(o.slice().sort((x, y) => x - y), ws.map((_, i) => i)); assert.deepStrictEqual(o, C.shuffleWords(ws, s)); assert.ok(o.some((v, i) => ws[v] !== ws[i]), l + ' seed ' + s); } }
+  assert.deepStrictEqual(C.shuffleWords(['a'], 1), [0]);
 });
-t('it is repeatable for a seed, different for another, and decrypts back to the message', () => {
-  const m = 'Hello, World! 2026'; const a = C.makeCipher(m, 5), b = C.makeCipher(m, 5), c = C.makeCipher(m, 6);
-  assert.deepStrictEqual(a.tokens.map(x => x.cipher), b.tokens.map(x => x.cipher)); assert.notDeepStrictEqual(a.tokens.map(x => x.cipher), c.tokens.map(x => x.cipher));
-  assert.strictEqual(a.tokens.map(x => x.plain ? a.inv[x.cipher] : x.ch).join(''), 'HELLO, WORLD! 2026'); assert.strictEqual(a.tokens.map(x => x.ch).join(''), m);
+t('prefix and solved detection, also with repeated words', () => {
+  const ws = ['la', 'vie', 'est', 'la', 'vie'];
+  assert.strictEqual(C.correctPrefix(['la', 'vie', 'est'], ws), 3); assert.strictEqual(C.correctPrefix(['vie'], ws), 0); assert.strictEqual(C.correctPrefix(['la', 'est'], ws), 1);
+  assert.ok(C.isSolvedLine(ws.slice(), ws)); assert.ok(!C.isSolvedLine(['la', 'vie', 'est', 'vie', 'la'], ws)); assert.ok(!C.isSolvedLine(ws.slice(0, 4), ws));
 });
-t('spaces, punctuation and digits stay; Cyrillic works; accents fold to their letter; œ becomes oe', () => {
-  const k = C.makeCipher('Привет, мир! Ёж.', 3); assert.ok(k.tokens.filter(x => x.plain).every(x => C.CYR.includes(x.plain) && C.CYR.includes(x.cipher))); assert.strictEqual(k.tokens[6].cipher, ','); assert.strictEqual(k.tokens[7].cipher, ' ');
-  const f = C.makeCipher("Cœur éléphant à Paris", 9); assert.strictEqual(f.tokens.map(x => x.plain || x.ch).join(''), 'COEUR ELEPHANT A PARIS'); assert.strictEqual(C.baseOf('é'), 'E'); assert.strictEqual(C.baseOf('ç'), 'C'); assert.strictEqual(C.baseOf('7'), null);
+t('every default sentence has 4 to 12 words and a full playthrough with the prefix rule always ends solved', () => {
+  for (const l of C.parseLines(defs.cipher.defaults.lines)) {
+    const ws = C.wordsOf(l); assert.ok(ws.length >= 4 && ws.length <= 12, l); const order = C.shuffleWords(ws, 7); let placed = [];
+    for (let guard = 0; guard < 500 && !C.isSolvedLine(placed.map(i => ws[i]), ws); guard++) { const k = C.correctPrefix(placed.map(i => ws[i]), ws); placed = placed.slice(0, k); const next = order.find(i => placed.indexOf(i) < 0 && ws[i] === ws[k]); assert.ok(next != null); placed.push(next); }
+    assert.ok(C.isSolvedLine(placed.map(i => ws[i]), ws));
+  }
 });
-t('frequency, wrong letters, hints, solved detection and placeholders', () => {
-  const k = C.makeCipher('AABAC', 2), f = C.frequency(k.tokens); assert.strictEqual(f[0].n, 3); assert.strictEqual(f.length, 3); assert.strictEqual(f[0].letter, k.maps[C.LAT]['A']);
-  const g = {}; k.tokens.forEach(x => { g[x.cipher] = x.plain; }); assert.ok(C.solvedAll(k.tokens, g)); g[k.maps[C.LAT]['B']] = 'Z'; assert.ok(!C.solvedAll(k.tokens, g)); assert.deepStrictEqual(C.wrongLetters(k.tokens, g), [k.maps[C.LAT]['B']]);
-  assert.strictEqual(C.hintLetter(k.tokens, {}, []), f[0].letter); assert.strictEqual(C.hintLetter(k.tokens, {}, [f[0].letter]), f[1].letter);
-  assert.ok(C.isPlaceholder('[REPLACE: final message]') && C.isPlaceholder('  ') && !C.isPlaceholder('Je t\'aime')); assert.strictEqual(C.starsFor(0, defs.cipher.defaults), 3); assert.strictEqual(C.starsFor(2, defs.cipher.defaults), 2); assert.strictEqual(C.starsFor(3, defs.cipher.defaults), 1);
-  assert.ok(defs.cipher.defaults.plaintext.includes('[REPLACE') && !/[а-яa-z]{12}/i.test(fs.readFileSync('content/games/cipher.js', 'utf8').replace(/\/\*[\s\S]*?\*\//g, '').replace(/REPLACE[^"]*/, '')), 'no real message in the file');
+t('stars, parsing, and no leftover code-breaking or package wording anywhere in the mode', () => {
+  const d = defs.cipher.defaults; assert.strictEqual(C.starsFor(0, d), 3); assert.strictEqual(C.starsFor(2, d), 3); assert.strictEqual(C.starsFor(3, d), 2); assert.strictEqual(C.starsFor(6, d), 2); assert.strictEqual(C.starsFor(7, d), 1);
+  assert.deepStrictEqual(C.parseLines('a  b\n\n c d \n'), ['a b', 'c d']);
+  const all = fs.readFileSync('games/cipher.js', 'utf8') + fs.readFileSync('content/games/cipher.js', 'utf8');
+  assert.ok(!/\[REPLACE|amazon|package|colis|locker|casier|substitution|\bcode\b/i.test(all.replace(/\/\*[\s\S]*?\*\//g, '')), 'old wording is still there');
+  assert.ok(!/amazon|package|colis|locker|leopard/i.test(fs.readFileSync('config.js', 'utf8')));
 });
 
 console.log('release check');
 const admin = require('../tools/admin.js');
 t('the release check reports placeholders, devKey and the do-not-upload list', () => {
   const r = admin.releaseCheck(); assert.ok(Array.isArray(r) && r.length && r.every(x => ['error', 'warn', 'info', 'ok'].includes(x.level) && x.text));
-  assert.ok(r.some(x => /placeholder/.test(x.text))); assert.ok(r.some(x => /Do NOT upload: tools/.test(x.text))); assert.strictEqual(r.some(x => /devKey is not empty/.test(x.text)), /devKey:\s*"[^"]+"/.test(fs.readFileSync('config.js', 'utf8')), 'a non-empty devKey must be reported');
+  assert.ok(r.some(x => /Do NOT upload: tools/.test(x.text))); assert.strictEqual(r.some(x => /devKey is not empty/.test(x.text)), /devKey:\s*"[^"]+"/.test(fs.readFileSync('config.js', 'utf8')), 'a non-empty devKey must be reported');
   assert.ok(!r.some(x => x.level === 'error' && !/devKey|audio\/gifts\//.test(x.text)), 'errors: ' + r.filter(x => x.level === 'error').map(x => x.text).join(' | ')); assert.ok(fs.readFileSync('DEPLOY.md', 'utf8').includes('DO NOT UPLOAD'));
 });
 
