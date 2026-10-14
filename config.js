@@ -640,8 +640,9 @@ const CONFIG = {
 		featured: {
 			// the big card on the left (the final gift)
 			title: "The final gift",
-			text: "Open the last step on the day of your birthday.",
+			text: "Un dernier cadeau t’attend. Ouvre-le.",
 			image: "", // e.g. "img/final.png"
+			// what she sees when she opens it: content/final.js
 		},
 		tiers: [
 			{

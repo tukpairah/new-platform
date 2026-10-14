@@ -172,6 +172,57 @@ a.btn{text-decoration:none;color:inherit}
 .ps-fx{font-size:15px;line-height:1.25;color:#fff}
 .ps-get{width:100%;height:56px;border-radius:10px;border:4px solid #12062F;background:linear-gradient(#F0DA50,#F4C444 55%,#E5B741);box-shadow:inset 0 -5px 0 #C6923B,0 4px 0 #12062F;font-size:28px;line-height:1;color:#12062F}
 .ps-get[aria-disabled="true"]{filter:grayscale(.6);opacity:.75}
+/* the final gift: a sealed box that opens into a golden ticket with the pickup barcode */
+.ps-feat{position:relative;border-color:#12062F;background:linear-gradient(#5A37C9,#301C80);overflow:hidden}
+.ps-feat::before{content:"";position:absolute;inset:0;background:linear-gradient(115deg,transparent 35%,rgba(255,226,122,.28) 50%,transparent 65%);transform:translateX(-120%);animation:fgSheen 3.6s ease-in-out infinite;pointer-events:none}
+.ps-feat .ps-fimg{background:radial-gradient(#FFD86B,#B8741A 70%);box-shadow:inset 0 0 0 3px rgba(18,6,47,.5)}
+@keyframes fgSheen{60%,100%{transform:translateX(120%)}}
+.fg{position:fixed;inset:0;z-index:30;display:flex;align-items:center;justify-content:center;padding:max(14px,env(safe-area-inset-top)) 14px max(14px,env(safe-area-inset-bottom));overflow:auto;
+  background:radial-gradient(ellipse at 50% 30%,#4B2A9E 0%,#24104F 55%,#120632 100%);color:#fff;-webkit-overflow-scrolling:touch}
+.fg-x{position:fixed;top:max(12px,env(safe-area-inset-top));right:14px;z-index:2;width:46px;height:46px;border-radius:50%;border:3px solid #12062F;background:#2C1572;color:#fff;font-size:22px;line-height:1}
+.fg-stars{position:fixed;inset:0;pointer-events:none;overflow:hidden}
+.fg-stars i{position:absolute;width:var(--s);height:var(--s);border-radius:50%;background:#FFE27A;opacity:.0;animation:fgTw var(--d) ease-in-out var(--dl) infinite;box-shadow:0 0 8px #FFD86B}
+@keyframes fgTw{0%,100%{opacity:0;transform:scale(.4)}50%{opacity:.9;transform:scale(1)}}
+.fg-box{display:flex;flex-direction:column;align-items:center;gap:22px;text-align:center;border:0;background:none;color:#fff;font:inherit;-webkit-tap-highlight-color:transparent}
+.fg-gift{position:relative;width:170px;height:170px;animation:fgBob 2.2s ease-in-out infinite}
+.fg-gift b,.fg-gift u{position:absolute;display:block;text-decoration:none}
+.fg-body{left:12px;right:12px;bottom:0;height:104px;border-radius:10px;border:4px solid #12062F;background:linear-gradient(#FFE27A,#E5A92E);box-shadow:inset 0 -8px 0 #C6823B}
+.fg-body::after,.fg-lid::after{content:"";position:absolute;left:50%;top:0;bottom:0;width:26px;margin-left:-13px;background:linear-gradient(90deg,#FF6B8B,#E8365D);border-inline:3px solid #12062F}
+.fg-lid{left:4px;right:4px;top:26px;height:50px;border-radius:10px;border:4px solid #12062F;background:linear-gradient(#FFEFA0,#F2BC3A);transition:transform .7s cubic-bezier(.3,1.6,.5,1),opacity .5s .3s}
+.fg-bow{left:50%;top:0;width:70px;height:36px;margin-left:-35px;z-index:2;transition:transform .7s cubic-bezier(.3,1.6,.5,1),opacity .5s .3s}
+.fg-bow::before,.fg-bow::after{content:"";position:absolute;top:2px;width:34px;height:30px;border:4px solid #12062F;background:#FF6B8B}
+.fg-bow::before{left:0;border-radius:100% 0 100% 0}.fg-bow::after{right:0;border-radius:0 100% 0 100%}
+.fg-box .fg-hint{font-size:24px;color:#FFE27A;animation:fgPulse 1.6s ease-in-out infinite}
+.fg-box .fg-kick{font-size:17px;opacity:.85;letter-spacing:.14em;text-transform:uppercase}
+@keyframes fgBob{50%{transform:translateY(-8px)}}@keyframes fgPulse{50%{opacity:.55}}
+.fg.opening .fg-lid{transform:translateY(-190px) rotate(-18deg);opacity:0}.fg.opening .fg-bow{transform:translateY(-210px) rotate(14deg);opacity:0}
+.fg.opening .fg-gift{animation:none}
+.fg-ticket{position:relative;width:min(100%,400px);margin:auto;opacity:0;transform:translateY(40px) scale(.96);transition:opacity .8s ease,transform .9s cubic-bezier(.2,.9,.3,1.05)}
+.fg-ticket.show{opacity:1;transform:none}
+.fg-card{position:relative;border-radius:18px;padding:3px;background:linear-gradient(140deg,#FFF3B0,#E9B33A 30%,#9C5E14 55%,#FFE48A 80%,#C98A22);box-shadow:0 18px 50px rgba(0,0,0,.55),0 0 60px rgba(255,200,80,.25)}
+.fg-in{position:relative;border-radius:15px;padding:20px 18px 16px;background:linear-gradient(#2B1668,#1A0B47);overflow:hidden}
+.fg-in::before{content:"";position:absolute;inset:7px;border:1.5px solid rgba(255,226,122,.35);border-radius:11px;pointer-events:none}
+.fg-in::after{content:"";position:absolute;top:0;bottom:0;width:60px;left:-80px;background:linear-gradient(100deg,transparent,rgba(255,236,160,.22),transparent);transform:skewX(-18deg);animation:fgSw 4.2s ease-in-out 1.2s infinite;pointer-events:none}
+@keyframes fgSw{55%,100%{left:120%}}
+.fg-k{font-size:15px;color:#FFE27A;letter-spacing:.16em;text-transform:uppercase}
+.fg-h{margin:8px 0 6px;font-size:28px;line-height:1.1;color:#fff}
+.fg-lead{margin:0 0 14px;font-size:15px;line-height:1.35;color:#E9DEFF;font-family:Georgia,"Times New Roman",serif;font-style:italic}
+.fg-bc{position:relative;z-index:2;border-radius:12px;background:#fff;padding:6px;box-shadow:0 0 0 3px #E9B33A,0 0 0 6px #12062F}
+.fg-bc img{display:block;width:100%;height:auto;image-rendering:auto}
+.fg-code{margin:12px 0 2px;display:block;width:100%;border:0;background:none;color:#FFE27A;font-size:34px;letter-spacing:.2em;padding:6px 0 0 .2em;-webkit-tap-highlight-color:transparent}
+.fg-cl{font-size:12px;opacity:.7;letter-spacing:.1em;text-transform:uppercase}
+.fg-perf{position:relative;height:0;margin:14px -18px 12px;border-top:2px dashed rgba(255,226,122,.4)}
+.fg-perf::before,.fg-perf::after{content:"";position:absolute;top:-12px;width:22px;height:22px;border-radius:50%;background:#1F0B59}
+.fg-perf::before{left:-11px}.fg-perf::after{right:-11px}
+.fg-info{display:grid;gap:9px;text-align:left;font-family:Georgia,"Times New Roman",serif;color:#F3ECFF}
+.fg-row{display:flex;gap:10px;align-items:flex-start;font-size:14px;line-height:1.35}.fg-row small{display:block;font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:#FFE27A;opacity:.9;font-family:inherit}
+.fg-row .e{flex:none;width:24px;text-align:center;font-size:18px}
+.fg-dl{color:#FFE27A;font-weight:bold}
+.fg-tip{margin:12px 0 0;font-size:13px;line-height:1.35;color:#CDBFF0;font-family:Georgia,serif;text-align:center}
+.fg-sign{margin:10px 0 0;font-size:24px;color:#FFE27A;text-align:center}
+@media (max-width:420px){.fg-h{font-size:24px}.fg-code{font-size:28px}}
+@media (prefers-reduced-motion:reduce){.ps-feat::before,.fg-gift,.fg-stars i,.fg-in::after,.fg-box .fg-hint{animation:none}.fg-ticket,.fg-lid,.fg-bow{transition:opacity .01s}.fg.opening .fg-lid,.fg.opening .fg-bow{transform:none}}
+
 .ps-trackwrap{position:relative;flex:1 1 auto;min-width:0;align-self:stretch;display:flex;align-items:center}
 .ps-track{display:flex;width:100%;overflow-x:auto;scrollbar-width:none;scroll-snap-type:x proximity;padding:8px 0 14px;-webkit-overflow-scrolling:touch}
 .ps-track::-webkit-scrollbar{display:none}
@@ -373,6 +424,7 @@ a.btn{text-decoration:none;color:inherit}
 <script src="content/economy.js"></script>
 <script src="content/quiz.js"></script>
 <script src="content/shop.js"></script>
+<script src="content/final.js"></script>
 <script src="content/phrases.js"></script>
 <script src="content/games.js"></script>
 <script src="lib/core.js"></script>
@@ -457,7 +509,7 @@ function renderPass() {
     </div>
     <div class="ps-body">
       <aside class="ps-feat"><div class="t ps-ft">${esc(f.title || '')}</div><div class="ps-fimg">${fArt}</div><div class="ps-fx">${esc(f.text || '')}</div>
-        <button type="button" class="ps-get" data-psurprise="${total}" aria-disabled="${tierReached(total) ? 'false' : 'true'}">GET</button></aside>
+        <button type="button" class="ps-get" data-pfinal aria-disabled="${tierReached(total) ? 'false' : 'true'}">${window.FINAL_REVEAL ? 'OPEN' : 'GET'}</button></aside>
       <div class="ps-trackwrap">
         <button type="button" class="ps-arr l" data-parrow="-1" aria-label="Scroll left"><span class="ico" data-icon="back"></span></button>
         <div class="ps-track">${cols}</div>
@@ -661,6 +713,41 @@ function showSurprise(i, originEl) {
   openModal(t0.top || 'Letter', Fx.paper(t0) + '<button type="button" class="mbtn" data-close style="margin-top:12px">Close</button>');      // the letter panel is shared (lib/fx.js)
   const m = $('.modal', modalRoot()); m.classList.add('letter'); Fx.after(m); Fx.unfold(m, originEl);
 }
+/* ---------- the final gift (config.js pass.featured.reveal): sealed box -> golden ticket with the pickup barcode ---------- */
+function openFinal() {
+  const f = P().featured || {}, R = window.FINAL_REVEAL, total = P().tiers.length;
+  if (!R) { openStep(total); return; }
+  if (!tierReached(total)) { Sfx.play('denied'); toast(needText(total)); return; }
+  if ($('.fg')) return;
+  const reduced = !!(window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches);
+  const o = document.createElement('div'); o.className = 'fg'; o.setAttribute('role', 'dialog'); o.setAttribute('aria-label', R.kicker || 'Final gift');
+  let stars = ''; for (let i = 0; i < 26; i++) stars += `<i style="left:${Math.random() * 100}%;top:${Math.random() * 100}%;--s:${3 + Math.random() * 5}px;--d:${2 + Math.random() * 3}s;--dl:-${Math.random() * 4}s"></i>`;
+  const row = (e, k, v, cls) => v ? `<div class="fg-row"><span class="e">${e}</span><div><small>${esc(k)}</small><span class="${cls || ''}">${esc(v)}</span></div></div>` : '';
+  o.innerHTML = `<div class="fg-stars" aria-hidden="true">${stars}</div><button type="button" class="fg-x t" aria-label="Close">&#10005;</button>
+    <button type="button" class="fg-box t" data-fgopen><span class="fg-kick">${esc(R.kicker || '')}</span><span class="fg-gift" aria-hidden="true"><b class="fg-body"></b><b class="fg-lid"></b><u class="fg-bow"></u></span><span class="fg-hint">Touche pour ouvrir</span></button>
+    <div class="fg-ticket" hidden><div class="fg-card"><div class="fg-in">
+      <div class="fg-k t">${esc(R.kicker || '')}</div><h2 class="fg-h t">${esc(R.title || '')}</h2><p class="fg-lead">${esc(R.lead || '')}</p>
+      <div class="fg-bc"><img src="${esc(R.barcode)}" alt="Code-barres de retrait"></div>
+      <button type="button" class="fg-code t" data-fgcopy aria-label="Copier le code">${esc(R.code || '')}</button><div class="fg-cl t">Code de retrait · touche pour copier</div>
+      <div class="fg-perf"></div>
+      <div class="fg-info">${row('📍', R.place, R.address)}${row('🕒', 'Horaires', R.hours)}${row('⏳', 'Date limite', R.deadline, 'fg-dl')}${row('📦', 'Commande', R.order)}</div>
+      <p class="fg-tip">${esc(R.tip || '')}</p><div class="fg-sign t">${esc(R.sign || '')}</div>
+    </div></div></div>`;
+  document.body.appendChild(o);
+  const close = () => { o.remove(); document.removeEventListener('keydown', onKey); };
+  const onKey = e => { if (e.key === 'Escape') close(); };
+  document.addEventListener('keydown', onKey);
+  $('.fg-x', o).addEventListener('click', close);
+  const box = $('[data-fgopen]', o), tk = $('.fg-ticket', o);
+  function reveal() {
+    if (o.classList.contains('opening')) return; o.classList.add('opening'); Sfx.play('modal'); setTimeout(() => Sfx.play('levelUp'), 200);
+    if (!reduced) Fx.burst(innerWidth / 2, innerHeight / 2);
+    setTimeout(() => { box.hidden = true; tk.hidden = false; requestAnimationFrame(() => requestAnimationFrame(() => tk.classList.add('show'))); if (!reduced) Fx.burst(innerWidth / 2, innerHeight / 3); }, reduced ? 0 : 750);
+  }
+  box.addEventListener('click', reveal);
+  $('[data-fgcopy]', o).addEventListener('click', () => { try { navigator.clipboard.writeText(R.code).then(() => toast('Code copié', true)); } catch (e) {} });
+  box.focus();
+}
 function openBazaar() { const u = R2.link(CONFIG.bazaarPage), w = window.open(u, '_blank'); if (!w) location.href = u; }     // (in dev mode ?dev=..&day=.. goes along, so both pages use the same save)
 function gain(n, xp) { Sfx.play(n > 0 ? 'coin' : 'claim'); if (n > 0) R2.bus.emit('gems:gained', { n }); const parts = []; if (n > 0) parts.push(`+${n} ${CONFIG.currency.name}`); if (xp > 0) parts.push(`+${xp} XP`); if (parts.length) toast(parts.join('  '), true); updateUI(); }
 
@@ -692,6 +779,7 @@ document.addEventListener('click', e => {
   if (el = e.target.closest('[data-gmode]')) { closeModal(); Shell.launch(el.dataset.gmode); return; }
   if (e.target.closest('[data-pclose]')) { closePass(); return; }
   if (el = e.target.closest('[data-parrow]')) { const tr = $('.ps-track', passRoot); if (tr) tr.scrollBy({ left: +el.dataset.parrow * 380, behavior: 'smooth' }); return; }
+  if (e.target.closest('[data-pfinal]')) { openFinal(); return; }
   if (el = e.target.closest('[data-psurprise],[data-ptier]')) { openStep(+(el.dataset.psurprise || el.dataset.ptier), el); return; }
   if (e.target.closest('[data-copy]')) {
     const box = $('#saveBox'); box.select();
