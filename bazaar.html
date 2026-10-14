@@ -64,6 +64,7 @@ body{margin:0;overflow-x:hidden}
 .modal.gw{width:min(560px,100%);text-align:center}.modal.gw h2{display:inline-block;margin:-4px 0 12px;padding:6px 18px 8px;background:var(--gwc,#7B4DFF);border:3px solid var(--bk);border-radius:8px;font-size:26px}
 .gw-ic{width:96px;height:96px;margin:0 auto 6px}.gw-ic img,.gw-ic svg,.gw-ic .ico{width:100%;height:100%;object-fit:contain;display:block}.gw-name{font-size:26px;margin:0 0 10px}
 .gw .mbtn.big{display:block;min-height:60px;line-height:54px;text-align:center;text-decoration:none;font-size:26px;padding:0 10px}.gw .mbtn.small{margin-top:8px}
+.modal a.mbtn{text-decoration:none}.pdfc{margin:6px auto 12px;width:min(46vw,230px)}.pdfc img{display:block;width:100%;height:auto;border-radius:3px;border:1px solid rgba(0,0,0,.25);box-shadow:0 10px 24px rgba(0,0,0,.45),0 0 0 3px #fff;transform:rotate(-1.5deg)}
 .gp-view{position:relative;touch-action:pan-y}.gp-view img{display:block;max-width:100%;max-height:42vh;margin:0 auto;border-radius:10px;border:3px solid #fff;box-shadow:0 0 0 2px var(--bk)}.gp-cap{font-size:16px;margin:8px 0 10px;min-height:20px}
 .gp-nav{display:flex;align-items:center;justify-content:center;gap:12px;margin:6px 0}.gp-nav .mbtn.small{margin:0;min-width:48px;min-height:44px}.gp-dots{font-size:15px;opacity:.85}
 /* the voice player */
@@ -216,6 +217,11 @@ function giftBody(it, p) {                                        // null = noth
   if (type === 'link') { if (blank(p.url)) return null; return (p.note ? `<p class="mnote">${esc(p.note)}</p>` : '') + `<a class="mbtn big" href="${esc(p.url.trim())}" target="_blank" rel="noopener noreferrer" data-sfx="open">${esc(p.buttonLabel || 'OPEN')}</a><button type="button" class="mbtn small grey" data-copylink="${esc(p.url.trim())}">Copy link</button>`; }
   if (type === 'letter' || type === 'text') { if (blank(p.message) && blank(p.text)) return null; return (p.title ? `<p class="qq">${esc(p.title)}</p>` : '') + Fx.paper({ message: p.message || p.text, signature: p.signature }); }
   if (type === 'voice') { if (blank(p.audio)) return null; return (p.title ? `<p class="qq">${esc(p.title)}</p>` : '') + playerHTML() + (p.caption ? `<p class="mnote">${esc(p.caption)}</p>` : ''); }
+  if (type === 'pdf') {                                             // a printable document: preview of page 1 + download + open (to print)
+    if (blank(p.file)) return null; const f = esc(p.file.trim());
+    return (p.title ? `<p class="qq">${esc(p.title)}</p>` : '') + (p.preview ? `<div class="pdfc"><img src="${esc(p.preview)}" alt="" draggable="false"></div>` : '') + (p.caption ? `<p class="mnote">${esc(p.caption)}</p>` : '')
+      + `<a class="mbtn big" href="${f}" download="${esc(p.downloadName || 'document.pdf')}" data-sfx="open">${esc(p.buttonLabel || 'Télécharger (PDF)')}</a><a class="mbtn small grey" href="${f}" target="_blank" rel="noopener noreferrer">${esc(p.openLabel || 'Ouvrir pour imprimer')}</a>`;
+  }
   if (type === 'photoVoice') {
     gp = { i: 0, list: (p.photos || []).filter(x => x && !blank(x.src)) }; if (!gp.list.length && blank(p.audio)) return null;
     const nav = gp.list.length > 1 ? `<div class="gp-nav"><button type="button" class="mbtn small grey" data-gp="-1" aria-label="Previous photo">&larr;</button><span class="gp-dots" data-gpdots></span><button type="button" class="mbtn small grey" data-gp="1" aria-label="Next photo">&rarr;</button></div>` : '';

@@ -1,4 +1,13 @@
-/* The gift of shop5 (type: link). Loaded ONLY after she buys it.
-   url           the page it opens in a NEW tab, e.g. "https://www.youtube.com/watch?v=..."   (empty = she sees "Coming soon, the gift is being prepared")
-   buttonLabel   the text of the big yellow button        note   a line shown above the button */
-R2.register("payload", "shop5", { "url": "", "buttonLabel": "", "note": "" });
+/* The gift of shop5 (type: pdf): the long letter as a printable PDF. Loaded ONLY after she buys it.
+   file          the PDF in docs/ (A4, made to be printed)          preview   a picture of its first page
+   downloadName  the file name she gets when she taps the big button
+   title / caption   heading and a small line         buttonLabel / openLabel   the two button texts */
+R2.register("payload", "shop5", {
+  "file": "docs/Lettre-pour-Irulan.pdf",
+  "preview": "img/gifts/lettre-cover.jpg",
+  "downloadName": "Lettre-pour-Irulan.pdf",
+  "title": "Ma lettre pour toi",
+  "caption": "À garder, à relire, à imprimer. Pour tes vingt ans.",
+  "buttonLabel": "Télécharger (PDF)",
+  "openLabel": "Ouvrir pour imprimer"
+});
