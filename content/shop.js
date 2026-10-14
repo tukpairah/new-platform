@@ -8,7 +8,7 @@
    teaser             one short line on the card (what it is, without spoiling it)
    icon               picture on the card: square PNG with a transparent background ("" = the drawn gift silhouette)
    iconOwned          optional picture after she bought it ("" = the same icon)
-   type               what is inside, decides the gift window:  link | letter | voice | photoVoice
+   type               what is inside, decides the gift window:  link | letter | voice | photoVoice | pdf
    availableFromDay   optional: e.g. 3 keeps the item shut until Day 3; left out = open from the start
    All the [REPLACE] texts are placeholders for you to write. */
 R2.register("shop", {
@@ -17,6 +17,6 @@ R2.register("shop", {
     { "id": "shop2", "rarity": "rare", "price": 80,      "name": "",           "teaser": "???", "icon": "./icons/22.png", "iconOwned": "./icons/22.png", "type": "letter" },
     { "id": "shop3", "rarity": "epic", "price": 105,      "name": "",    "teaser": "???", "icon": "./icons/55.png", "iconOwned": "./icons/55.png", "type": "voice" },
     { "id": "shop4", "rarity": "epic", "price": 135,      "name": "",    "teaser": "???", "icon": "./icons/44.png", "iconOwned": "./icons/44.png", "type": "photoVoice" },
-    { "id": "shop5", "rarity": "legendary", "price": 185, "name": "",     "teaser": "???", "icon": "./icons/66.png", "iconOwned": "./icons/66.png", "type": "link" }
+    { "id": "shop5", "rarity": "legendary", "price": 185, "name": "",     "teaser": "???", "icon": "./icons/66.png", "iconOwned": "./icons/66.png", "type": "pdf" }
   ]
 });
